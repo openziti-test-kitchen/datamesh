@@ -1,5 +1,10 @@
 package datamesh
 
+const (
+	PayloadContentType = 10099
+	AckContentType     = 10100
+)
+
 type Header struct {
 	SessionId string
 	Flags     uint32
