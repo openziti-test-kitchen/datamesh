@@ -14,13 +14,10 @@ type Listener struct {
 }
 
 func NewListener(id *identity.TokenId, bind transport.Address) *Listener {
-	return &Listener{
-		id:   id,
-		bind: bind,
-	}
+	return &Listener{id: id, bind: bind}
 }
 
-func (self *Listener) Listen() {
+func (self *Listener) Listen(incoming chan<- channel2.Channel) {
 	self.listener = channel2.NewClassicListener(self.id, self.bind, channel2.DefaultConnectOptions(), nil)
 	if err := self.listener.Listen(); err != nil {
 		logrus.Errorf("error starting listener [%s] (%v)", self.bind, err)
@@ -34,11 +31,6 @@ func (self *Listener) Listen() {
 		if err != nil {
 			logrus.Errorf("error accepting new link for [%s] (%v)", self.bind, err)
 		}
-		go handleChannel(ch)
+		incoming <- ch
 	}
-}
-
-func handleChannel(ch channel2.Channel) {
-	logrus.Infof("accepted channel [%s]", ch.Label())
-	_ = ch.Close()
 }
