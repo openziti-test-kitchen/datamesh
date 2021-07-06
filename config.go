@@ -3,17 +3,17 @@ package datamesh
 import "github.com/openziti/foundation/transport"
 
 type Config struct {
-	LinkListeners []*LinkListenerConfig
-	LinkDialers   []*LinkDialerConfig
+	Listeners   []*ListenerConfig
+	LinkDialers []*DialerConfig
 }
 
-type LinkListenerConfig struct {
+type ListenerConfig struct {
 	Id            string
 	BindAddress   transport.Address
 	Advertisement transport.Address
 }
 
-type LinkDialerConfig struct {
+type DialerConfig struct {
 	Id          string
 	BindAddress transport.Address
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/michaelquigley/pfxlog"
 	"github.com/sirupsen/logrus"
 )
@@ -11,5 +10,7 @@ func init() {
 }
 
 func main() {
-	fmt.Println("oh, wow!")
+	if err := RootCmd.Execute(); err != nil {
+		logrus.Fatalf("error (%v)", err)
+	}
 }
