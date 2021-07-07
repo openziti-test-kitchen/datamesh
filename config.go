@@ -3,8 +3,8 @@ package datamesh
 import "github.com/openziti/foundation/transport"
 
 type Config struct {
-	Listeners   []*ListenerConfig
-	LinkDialers []*DialerConfig
+	Listeners []*ListenerConfig
+	Dialers   []*DialerConfig
 }
 
 type ListenerConfig struct {
