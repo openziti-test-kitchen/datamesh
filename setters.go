@@ -12,7 +12,11 @@ func TransportAddressSetter(v interface{}, f reflect.Value) error {
 		if err != nil {
 			return errors.Wrapf(err, "error parsing '%s'", vt)
 		}
-		f.Set(reflect.ValueOf(addr))
+		if f.Kind() == reflect.Ptr {
+			f.Elem().Set(reflect.ValueOf(addr))
+		} else {
+			f.Set(reflect.ValueOf(addr))
+		}
 		return nil
 	}
 	return errors.Errorf("got '%s', expected '%s'", reflect.TypeOf(v), f.Type())

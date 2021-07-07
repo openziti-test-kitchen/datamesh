@@ -6,3 +6,7 @@ listeners:
 dialers:
   - id:               omni
     bind_address:     tcp:0.0.0.0:6000
+
+peers:
+  - tcp:0.0.0.0:6001
+  - tcp:0.0.0.0:6002

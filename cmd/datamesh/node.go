@@ -29,4 +29,8 @@ func node(_ *cobra.Command, args []string) {
 		logrus.Error(err)
 		return
 	}
+
+	logrus.Infof("cfg.Listeners = %p", cfg.Listeners)
+	logrus.Infof("cfg.Dialers = %p", cfg.Dialers)
+	logrus.Infof("cfg.Peers = %p", cfg.Peers)
 }
