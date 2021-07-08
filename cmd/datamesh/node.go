@@ -30,7 +30,5 @@ func node(_ *cobra.Command, args []string) {
 		return
 	}
 
-	logrus.Infof("cfg.Listeners = %p", cfg.Listeners)
-	logrus.Infof("cfg.Dialers = %p", cfg.Dialers)
-	logrus.Infof("cfg.Peers = %p", cfg.Peers)
+	logrus.Info(cf.Dump("config", cfg, cfo))
 }
