@@ -30,5 +30,5 @@ func node(_ *cobra.Command, args []string) {
 		return
 	}
 
-	logrus.Info(cf.Dump("config", cfg, cfo))
+	logrus.Info(cf.Dump(cfg, cfo))
 }
