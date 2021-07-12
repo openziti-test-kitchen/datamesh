@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/michaelquigley/pfxlog"
+	"github.com/openziti-incubator/datamesh/cmd/datamesh/cli"
 	"github.com/openziti/foundation/transport"
 	"github.com/openziti/foundation/transport/tcp"
 	"github.com/openziti/foundation/transport/tls"
@@ -15,7 +16,7 @@ func init() {
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := cli.RootCmd.Execute(); err != nil {
 		logrus.Fatalf("error (%v)", err)
 	}
 }

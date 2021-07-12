@@ -1,8 +1,9 @@
-package main
+package node
 
 import (
 	"github.com/openziti-incubator/cf"
 	"github.com/openziti-incubator/datamesh"
+	"github.com/openziti-incubator/datamesh/cmd/datamesh/cli"
 	"github.com/openziti/foundation/transport"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -10,7 +11,7 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(nodeCmd)
+	cli.RootCmd.AddCommand(nodeCmd)
 }
 
 var nodeCmd = &cobra.Command{

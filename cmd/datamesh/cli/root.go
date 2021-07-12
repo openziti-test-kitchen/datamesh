@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"github.com/sirupsen/logrus"
@@ -9,10 +9,10 @@ import (
 )
 
 func init() {
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
+	RootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 }
 
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   strings.TrimSuffix(filepath.Base(os.Args[0]), filepath.Ext(os.Args[0])),
 	Short: "Datamesh Utilities",
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
