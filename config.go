@@ -5,7 +5,6 @@ import "github.com/openziti/foundation/transport"
 type Config struct {
 	Listeners []*ListenerConfig
 	Dialers   []*DialerConfig
-	Peers     []transport.Address
 }
 
 type ListenerConfig struct {

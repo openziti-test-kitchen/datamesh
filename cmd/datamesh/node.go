@@ -24,7 +24,7 @@ func node(_ *cobra.Command, args []string) {
 	cfo := cf.DefaultOptions()
 	cfo = cfo.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
 
-	cfg := &datamesh.Config{}
+	cfg := &Config{}
 	if err := cf.BindYaml(cfg, args[0], cfo); err != nil {
 		logrus.Error(err)
 		return
