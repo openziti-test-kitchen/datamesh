@@ -22,18 +22,17 @@ func NewDatamesh(cf *Config) *Datamesh {
 	}
 	for _, listenerCf := range cf.Listeners {
 		d.listeners[listenerCf.Id] = NewListener(&identity.TokenId{Token: listenerCf.Id}, listenerCf.BindAddress)
-		logrus.Infof("added listener at '%s'", listenerCf.BindAddress)
+		logrus.Infof("added listener at [%s]", listenerCf.BindAddress)
 	}
 	for _, dialerCf := range cf.Dialers {
 		d.dialers[dialerCf.Id] = NewDialer(&identity.TokenId{Token: dialerCf.Id}, dialerCf.BindAddress)
-		logrus.Infof("added dialer at '%s'", dialerCf.BindAddress)
+		logrus.Infof("added dialer at [%s]", dialerCf.BindAddress)
 	}
 	return d
 }
 
 func (self *Datamesh) Start() {
-	for k, v := range self.listeners {
+	for _, v := range self.listeners {
 		go v.Listen(self.incoming)
-		logrus.Infof("started listener '%s'", k)
 	}
 }
