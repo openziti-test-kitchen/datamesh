@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"reflect"
+	"time"
 )
 
 func init() {
@@ -22,14 +23,20 @@ var nodeCmd = &cobra.Command{
 }
 
 func node(_ *cobra.Command, args []string) {
-	cfo := cf.DefaultOptions()
-	cfo = cfo.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
+	cfO := cf.DefaultOptions()
+	cfO = cfO.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
 
-	cfg := &Config{}
-	if err := cf.BindYaml(cfg, args[0], cfo); err != nil {
+	cfI := &Config{}
+	if err := cf.BindYaml(cfI, args[0], cfO); err != nil {
 		logrus.Error(err)
 		return
 	}
+	logrus.Info(cf.Dump(cfI, cfO))
 
-	logrus.Info(cf.Dump(cfg, cfo))
+	d := datamesh.NewDatamesh(cfI.Datamesh)
+	d.Start()
+
+	for {
+		time.Sleep(30 * time.Second)
+	}
 }

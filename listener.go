@@ -1,6 +1,7 @@
 package datamesh
 
 import (
+	"github.com/michaelquigley/pfxlog"
 	"github.com/openziti/foundation/channel2"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
@@ -23,6 +24,7 @@ func (self *Listener) Listen(incoming chan<- channel2.Channel) {
 		logrus.Errorf("error starting listener [%s] (%v)", self.bind, err)
 		return
 	}
+	pfxlog.ContextLogger(self.id.Token).Infof("started")
 
 	options := channel2.DefaultOptions()
 	options.BindHandlers = []channel2.BindHandler{&bindHandler{}}

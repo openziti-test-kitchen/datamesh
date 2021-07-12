@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/michaelquigley/pfxlog"
 	"github.com/openziti-incubator/datamesh/cmd/datamesh/cli"
+	_ "github.com/openziti-incubator/datamesh/cmd/datamesh/node"
 	"github.com/openziti/foundation/transport"
 	"github.com/openziti/foundation/transport/tcp"
 	"github.com/openziti/foundation/transport/tls"
