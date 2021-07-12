@@ -37,9 +37,9 @@ func node(_ *cobra.Command, args []string) {
 	d.Start()
 
 	for _, peer := range cfI.Peers {
-		linkId, err := d.Dial("default", peer)
+		linkCh, err := d.Dial("default", peer)
 		if err == nil {
-			logrus.Infof("connected link [%s]", linkId)
+			logrus.Infof("connected link [%s]", linkCh.Label())
 		} else {
 			logrus.Errorf("error connecting link (%v)", err)
 		}

@@ -37,18 +37,27 @@ func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
 		go v.Listen(self.incoming)
 	}
+	go self.accepter()
 }
 
-func (self *Datamesh) Dial(id string, endpoint transport.Address) (string, error) {
+func (self *Datamesh) Dial(id string, endpoint transport.Address) (channel2.Channel, error) {
 	if dialer, found := self.dialers[id]; found {
 		ch, err := dialer.Dial(endpoint)
 		if err != nil {
-			return "", errors.Wrapf(err, "error dialing [%s]", endpoint)
+			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
 		}
-		_ = ch.Close()
-		return "linkId", nil
+		return ch, nil
 
 	} else {
-		return "", errors.Errorf("no dialer [%s]", id)
+		return nil, errors.Errorf("no dialer [%s]", id)
+	}
+}
+
+func (self *Datamesh) accepter() {
+	for {
+		select {
+		case ch := <-self.incoming:
+			logrus.Infof("accepted [%s]", ch.Label())
+		}
 	}
 }
