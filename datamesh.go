@@ -3,6 +3,8 @@ package datamesh
 import (
 	"github.com/openziti/foundation/channel2"
 	"github.com/openziti/foundation/identity/identity"
+	"github.com/openziti/foundation/transport"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,5 +36,19 @@ func NewDatamesh(cf *Config) *Datamesh {
 func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
 		go v.Listen(self.incoming)
+	}
+}
+
+func (self *Datamesh) Dial(id string, endpoint transport.Address) (string, error) {
+	if dialer, found := self.dialers[id]; found {
+		ch, err := dialer.Dial(endpoint)
+		if err != nil {
+			return "", errors.Wrapf(err, "error dialing [%s]", endpoint)
+		}
+		_ = ch.Close()
+		return "linkId", nil
+
+	} else {
+		return "", errors.Errorf("no dialer [%s]", id)
 	}
 }

@@ -1,0 +1,9 @@
+datamesh:
+  listeners:
+    - id:               default
+      bind_address:     tcp:0.0.0.0:6001
+      advertisement:    tcp:0.0.0.0:6001
+
+  dialers:
+    - id:               default
+      bind_address:     tcp:0.0.0.0:6001

@@ -1,13 +1,12 @@
 datamesh:
   listeners:
-    - id:               omni
+    - id:               default
       bind_address:     tcp:0.0.0.0:6000
       advertisement:    tcp:0.0.0.0:6000
 
   dialers:
-    - id:               omni
+    - id:               default
       bind_address:     tcp:0.0.0.0:6000
 
 peers:
   - tcp:0.0.0.0:6001
-  - tcp:0.0.0.0:6002

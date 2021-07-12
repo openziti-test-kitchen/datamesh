@@ -36,6 +36,15 @@ func node(_ *cobra.Command, args []string) {
 	d := datamesh.NewDatamesh(cfI.Datamesh)
 	d.Start()
 
+	for _, peer := range cfI.Peers {
+		linkId, err := d.Dial("default", peer)
+		if err == nil {
+			logrus.Infof("connected link [%s]", linkId)
+		} else {
+			logrus.Errorf("error connecting link (%v)", err)
+		}
+	}
+
 	for {
 		time.Sleep(30 * time.Second)
 	}
