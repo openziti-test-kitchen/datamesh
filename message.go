@@ -1,9 +1,14 @@
 package datamesh
 
 const (
-	PayloadContentType = 10099
-	AckContentType     = 10100
+	ControlContentType = 10099
+	PayloadContentType = 10100
+	AckContentType     = 10101
 )
+
+type Control struct {
+	Headers map[uint8][]byte
+}
 
 type Header struct {
 	SessionId string
