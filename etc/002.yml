@@ -7,3 +7,5 @@ datamesh:
   dialers:
     - id:               default
       bind_address:     tcp:0.0.0.0:6001
+
+  mtu:                  32000

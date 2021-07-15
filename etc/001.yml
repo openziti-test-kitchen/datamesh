@@ -8,5 +8,7 @@ datamesh:
     - id:               default
       bind_address:     tcp:0.0.0.0:6000
 
+  mtu:                  32000
+
 peers:
   - tcp:0.0.0.0:6001

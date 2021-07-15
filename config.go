@@ -5,6 +5,7 @@ import "github.com/openziti/foundation/transport"
 type Config struct {
 	Listeners []*ListenerConfig
 	Dialers   []*DialerConfig
+	MTU       uint32
 }
 
 type ListenerConfig struct {
