@@ -23,20 +23,20 @@ var nodeCmd = &cobra.Command{
 }
 
 func node(_ *cobra.Command, args []string) {
-	cfO := cf.DefaultOptions()
-	cfO = cfO.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
+	cfOpts := cf.DefaultOptions()
+	cfOpts = cfOpts.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
 
-	cfI := &Config{}
-	if err := cf.BindYaml(cfI, args[0], cfO); err != nil {
+	cfCfg := &Config{}
+	if err := cf.BindYaml(cfCfg, args[0], cfOpts); err != nil {
 		logrus.Error(err)
 		return
 	}
-	logrus.Info(cf.Dump(cfI, cfO))
+	logrus.Info(cf.Dump(cfCfg, cfOpts))
 
-	d := datamesh.NewDatamesh(cfI.Datamesh)
+	d := datamesh.NewDatamesh(cfCfg.Datamesh)
 	d.Start()
 
-	for _, peer := range cfI.Peers {
+	for _, peer := range cfCfg.Peers {
 		linkCh, err := d.Dial("default", peer)
 		if err == nil {
 			logrus.Infof("connected link [%s]", linkCh.Id().Token)
