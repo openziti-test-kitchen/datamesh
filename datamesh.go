@@ -42,7 +42,11 @@ func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
 		go v.Listen(self.incoming)
 	}
-	go self.accepter()
+	if len(self.listeners) > 0 {
+		go self.accepter()
+	} else {
+		logrus.Warn("no listeners, not starting accepter")
+	}
 }
 
 func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) {
@@ -51,6 +55,7 @@ func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) 
 		if err != nil {
 			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
 		}
+
 		l := &link{ch: ch, id: &identity.TokenId{Token: ch.ConnectionId()}}
 		self.lock.Lock()
 		self.links[ch.Id().Token] = l
@@ -64,6 +69,9 @@ func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) 
 }
 
 func (self *Datamesh) accepter() {
+	logrus.Info("started")
+	defer logrus.Warn("exited")
+
 	for {
 		select {
 		case ch := <-self.incoming:
