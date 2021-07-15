@@ -5,6 +5,7 @@ import (
 	"github.com/openziti/foundation/channel2"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -74,4 +75,56 @@ func (self *link) pinger() {
 			log.Errorf("error sending control ping request (%v)", err)
 		}
 	}
+}
+
+type linkBindHandler struct{}
+
+func newLinkBindHandler(l *link) *linkBindHandler {
+	return &linkBindHandler{}
+}
+
+func (_ *linkBindHandler) BindChannel(ch channel2.Channel) error {
+	ch.AddReceiveHandler(&linkControlReceiveHandler{})
+	ch.AddReceiveHandler(&linkPayloadReceiveHandler{})
+	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{})
+	return nil
+}
+
+type linkControlReceiveHandler struct{}
+
+func (_ *linkControlReceiveHandler) ContentType() int32 {
+	return int32(ControlContentType)
+}
+
+func (_ *linkControlReceiveHandler) HandleReceive(msg *channel2.Message, ch channel2.Channel) {
+	log := pfxlog.ContextLogger(ch.ConnectionId())
+	if ctrl, err := UnmarshallControl(msg); err == nil {
+		if ctrl.Flags == uint32(PingRequestControlFlag) {
+			log.Info("received ping request")
+		} else {
+			log.Error("unknown flags")
+		}
+	} else {
+		log.Errorf("error unmarshaling control message (%v)", err)
+	}
+}
+
+type linkPayloadReceiveHandler struct{}
+
+func (_ *linkPayloadReceiveHandler) ContentType() int32 {
+	return int32(PayloadContentType)
+}
+
+func (_ *linkPayloadReceiveHandler) HandleReceive(m *channel2.Message, _ channel2.Channel) {
+	logrus.Infof("received [%d] bytes", len(m.Body))
+}
+
+type linkAcknowledgementReceiveHandler struct{}
+
+func (_ *linkAcknowledgementReceiveHandler) ContentType() int32 {
+	return int32(AckContentType)
+}
+
+func (_ *linkAcknowledgementReceiveHandler) HandleReceive(m *channel2.Message, _ channel2.Channel) {
+	logrus.Infof("received [%d] bytes", len(m.Body))
 }

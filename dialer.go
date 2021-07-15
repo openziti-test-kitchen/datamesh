@@ -21,7 +21,7 @@ func (self *Dialer) Dial(endpoint transport.Address) (channel2.Channel, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
 	options := channel2.DefaultOptions()
-	options.BindHandlers = []channel2.BindHandler{&bindHandler{}}
+	options.BindHandlers = []channel2.BindHandler{&linkBindHandler{}}
 	dialer := channel2.NewClassicDialer(self.id, endpoint, nil)
 	ch, err := channel2.NewChannel("link", dialer, options)
 	if err != nil {

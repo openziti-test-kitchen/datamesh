@@ -27,7 +27,7 @@ func (self *Listener) Listen(incoming chan<- channel2.Channel) {
 	pfxlog.ContextLogger(self.id.Token).Infof("started")
 
 	options := channel2.DefaultOptions()
-	options.BindHandlers = []channel2.BindHandler{&bindHandler{}}
+	options.BindHandlers = []channel2.BindHandler{&linkBindHandler{}}
 	for {
 		ch, err := channel2.NewChannel("link", self.listener, options)
 		if err != nil {
