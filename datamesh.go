@@ -57,15 +57,19 @@ func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) 
 		}
 
 		l := &link{ch: ch, id: &identity.TokenId{Token: ch.ConnectionId()}}
-		self.lock.Lock()
-		self.links[ch.Id().Token] = l
-		self.lock.Unlock()
-
+		self.addLink(l)
 		return l, nil
-
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
 	}
+}
+
+func (self *Datamesh) addLink(l *link) {
+	self.lock.Lock()
+	defer self.lock.Unlock()
+
+	self.links[l.Id().Token] = l
+	go l.pinger()
 }
 
 func (self *Datamesh) accepter() {
@@ -76,10 +80,7 @@ func (self *Datamesh) accepter() {
 		select {
 		case ch := <-self.incoming:
 			l := &link{ch: ch, id: &identity.TokenId{Token: ch.ConnectionId()}}
-			self.lock.Lock()
-			self.links[ch.Id().Token] = l
-			self.lock.Unlock()
-
+			self.addLink(l)
 			logrus.Infof("accepted link [%s]", l.Id().Token)
 		}
 	}

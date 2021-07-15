@@ -68,6 +68,10 @@ type Acknowledgement struct {
  * Implementation
  */
 
+func NewControl(flags uint32, data []byte) *Control {
+	return &Control{flags, data}
+}
+
 func (self *Control) Marshal() *channel2.Message {
 	msg := channel2.NewMessage(int32(ControlContentType), self.Data)
 	msg.PutUint32Header(ControlFlagsHeaderKey, self.Flags)
