@@ -2,7 +2,6 @@ package datamesh
 
 import (
 	"github.com/openziti/foundation/transport"
-	"github.com/sirupsen/logrus"
 	"time"
 )
 
