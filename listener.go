@@ -4,24 +4,23 @@ import (
 	"github.com/michaelquigley/pfxlog"
 	"github.com/openziti/foundation/channel2"
 	"github.com/openziti/foundation/identity/identity"
-	"github.com/openziti/foundation/transport"
 	"github.com/sirupsen/logrus"
 )
 
 type Listener struct {
+	cfg      *ListenerConfig
 	id       *identity.TokenId
-	bind     transport.Address
 	listener channel2.UnderlayListener
 }
 
-func NewListener(id *identity.TokenId, bind transport.Address) *Listener {
-	return &Listener{id: id, bind: bind}
+func NewListener(cfg *ListenerConfig, id *identity.TokenId) *Listener {
+	return &Listener{cfg: cfg, id: id}
 }
 
-func (self *Listener) Listen(incoming chan<- channel2.Channel) {
-	self.listener = channel2.NewClassicListener(self.id, self.bind, channel2.DefaultConnectOptions(), nil)
+func (self *Listener) Listen(incoming chan<- *link) {
+	self.listener = channel2.NewClassicListener(self.id, self.cfg.BindAddress, channel2.DefaultConnectOptions(), nil)
 	if err := self.listener.Listen(); err != nil {
-		logrus.Errorf("error starting listener [%s] (%v)", self.bind, err)
+		logrus.Errorf("error starting listener [%s] (%v)", self.cfg.BindAddress, err)
 		return
 	}
 	pfxlog.ContextLogger(self.id.Token).Infof("started")
@@ -31,8 +30,10 @@ func (self *Listener) Listen(incoming chan<- channel2.Channel) {
 	for {
 		ch, err := channel2.NewChannel("link", self.listener, options)
 		if err != nil {
-			logrus.Errorf("error accepting new link for [%s] (%v)", self.bind, err)
+			logrus.Errorf("error accepting new link for [%s] (%v)", self.cfg.BindAddress, err)
 		}
-		incoming <- ch
+
+		l := newLink(self.cfg.LinkConfig, &identity.TokenId{Token: ch.ConnectionId()}, nil, ch, InboundLink)
+		incoming <- l
 	}
 }

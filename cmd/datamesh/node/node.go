@@ -23,20 +23,22 @@ var nodeCmd = &cobra.Command{
 }
 
 func node(_ *cobra.Command, args []string) {
-	cfOpts := cf.DefaultOptions()
-	cfOpts = cfOpts.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
+	cfo := cf.DefaultOptions()
+	cfo = cfo.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
+	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.DialerConfig{}), func() interface{} { return datamesh.DialerConfigDefaults() })
+	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.ListenerConfig{}), func() interface{} { return datamesh.ListenerConfigDefaults() })
 
-	cfCfg := &Config{}
-	if err := cf.BindYaml(cfCfg, args[0], cfOpts); err != nil {
+	cfg := &Config{}
+	if err := cf.BindYaml(cfg, args[0], cfo); err != nil {
 		logrus.Error(err)
 		return
 	}
-	logrus.Info(cf.Dump(cfCfg, cfOpts))
+	logrus.Info(cf.Dump(cfg, cfo))
 
-	d := datamesh.NewDatamesh(cfCfg.Datamesh)
+	d := datamesh.NewDatamesh(cfg.Datamesh)
 	d.Start()
 
-	for _, peer := range cfCfg.Peers {
+	for _, peer := range cfg.Peers {
 		linkCh, err := d.Dial("default", peer)
 		if err == nil {
 			logrus.Infof("connected link [%s]", linkCh.Id().Token)

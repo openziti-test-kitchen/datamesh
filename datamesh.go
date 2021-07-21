@@ -1,7 +1,6 @@
 package datamesh
 
 import (
-	"github.com/openziti/foundation/channel2"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
 	"github.com/pkg/errors"
@@ -14,7 +13,7 @@ type Datamesh struct {
 	self      *identity.TokenId
 	listeners map[string]*Listener
 	dialers   map[string]*Dialer
-	incoming  chan channel2.Channel
+	incoming  chan *link
 	links     map[string]*link
 	lock      sync.Mutex
 }
@@ -24,15 +23,15 @@ func NewDatamesh(cf *Config) *Datamesh {
 		cf:        cf,
 		listeners: make(map[string]*Listener),
 		dialers:   make(map[string]*Dialer),
-		incoming:  make(chan channel2.Channel, 128),
+		incoming:  make(chan *link, 128),
 		links:     make(map[string]*link),
 	}
 	for _, listenerCf := range cf.Listeners {
-		d.listeners[listenerCf.Id] = NewListener(&identity.TokenId{Token: listenerCf.Id}, listenerCf.BindAddress)
+		d.listeners[listenerCf.Id] = NewListener(listenerCf, &identity.TokenId{Token: listenerCf.Id})
 		logrus.Infof("added listener at [%s]", listenerCf.BindAddress)
 	}
 	for _, dialerCf := range cf.Dialers {
-		d.dialers[dialerCf.Id] = NewDialer(&identity.TokenId{Token: dialerCf.Id}, dialerCf.BindAddress)
+		d.dialers[dialerCf.Id] = NewDialer(dialerCf, &identity.TokenId{Token: dialerCf.Id})
 		logrus.Infof("added dialer at [%s]", dialerCf.BindAddress)
 	}
 	return d
@@ -43,7 +42,7 @@ func (self *Datamesh) Start() {
 		go v.Listen(self.incoming)
 	}
 	if len(self.listeners) > 0 {
-		go self.accepter()
+		go self.linkAccepter()
 	} else {
 		logrus.Warn("no listeners, not starting accepter")
 	}
@@ -51,12 +50,10 @@ func (self *Datamesh) Start() {
 
 func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) {
 	if dialer, found := self.dialers[id]; found {
-		ch, err := dialer.Dial(endpoint)
+		l, err := dialer.Dial(endpoint)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
 		}
-
-		l := &link{ch: ch, id: &identity.TokenId{Token: ch.ConnectionId()}}
 		self.addLink(l)
 		return l, nil
 	} else {
@@ -67,19 +64,16 @@ func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) 
 func (self *Datamesh) addLink(l *link) {
 	self.lock.Lock()
 	defer self.lock.Unlock()
-
 	self.links[l.Id().Token] = l
-	go l.pinger()
 }
 
-func (self *Datamesh) accepter() {
+func (self *Datamesh) linkAccepter() {
 	logrus.Info("started")
 	defer logrus.Warn("exited")
 
 	for {
 		select {
-		case ch := <-self.incoming:
-			l := &link{ch: ch, id: &identity.TokenId{Token: ch.ConnectionId()}}
+		case l := <-self.incoming:
 			self.addLink(l)
 			logrus.Infof("accepted link [%s]", l.Id().Token)
 		}

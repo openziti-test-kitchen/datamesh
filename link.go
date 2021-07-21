@@ -6,7 +6,6 @@ import (
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type LinkDirection int8
@@ -27,10 +26,25 @@ type Link interface {
 }
 
 type link struct {
-	ch        channel2.Channel
-	id        *identity.TokenId
-	peer      *identity.TokenId
-	direction LinkDirection
+	cfg           *LinkConfig
+	id            *identity.TokenId
+	peer          *identity.TokenId
+	ch            channel2.Channel
+	direction     LinkDirection
+	pingResponses chan *channel2.Message
+}
+
+func newLink(cfg *LinkConfig, id, peer *identity.TokenId, ch channel2.Channel, direction LinkDirection) *link {
+	l := &link{
+		cfg:           cfg,
+		id:            id,
+		peer:          peer,
+		ch:            ch,
+		direction:     direction,
+		pingResponses: make(chan *channel2.Message, cfg.PingQueueLength),
+	}
+	go l.pinger()
+	return l
 }
 
 func (self *link) Id() *identity.TokenId {
@@ -61,27 +75,7 @@ func (self *link) Close() error {
 	return errors.New("not implemented")
 }
 
-func (self *link) pinger() {
-	log := pfxlog.ContextLogger(self.Id().Token)
-	log.Info("started")
-	defer log.Warn("exited")
-
-	for {
-		time.Sleep(5 * time.Second)
-
-		if err := self.SendControl(NewControl(uint32(PingRequestControlFlag), nil)); err == nil {
-			log.Info("sent control ping request")
-		} else {
-			log.Errorf("error sending control ping request (%v)", err)
-		}
-	}
-}
-
 type linkBindHandler struct{}
-
-func newLinkBindHandler(l *link) *linkBindHandler {
-	return &linkBindHandler{}
-}
 
 func (_ *linkBindHandler) BindChannel(ch channel2.Channel) error {
 	ch.AddReceiveHandler(&linkControlReceiveHandler{})

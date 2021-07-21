@@ -9,15 +9,15 @@ import (
 )
 
 type Dialer struct {
-	id       *identity.TokenId
-	bind     transport.Address
+	cfg *DialerConfig
+	id  *identity.TokenId
 }
 
-func NewDialer(id *identity.TokenId, bind transport.Address) *Dialer {
-	return &Dialer{id, bind}
+func NewDialer(cfg *DialerConfig, id *identity.TokenId) *Dialer {
+	return &Dialer{cfg, id}
 }
 
-func (self *Dialer) Dial(endpoint transport.Address) (channel2.Channel, error) {
+func (self *Dialer) Dial(endpoint transport.Address) (*link, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
 	options := channel2.DefaultOptions()
@@ -27,5 +27,7 @@ func (self *Dialer) Dial(endpoint transport.Address) (channel2.Channel, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating channel")
 	}
-	return ch, nil
+
+	l := newLink(self.cfg.LinkConfig, &identity.TokenId{Token: ch.ConnectionId()}, nil, ch, OutboundLink)
+	return l, nil
 }
