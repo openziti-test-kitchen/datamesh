@@ -18,7 +18,6 @@ type LinkConfig struct {
 }
 
 func LinkConfigDefaults() *LinkConfig {
-	logrus.Infof("created new link config")
 	return &LinkConfig{
 		PingPeriod:      time.Duration(2) * time.Second,
 		PingQueueLength: 128,
