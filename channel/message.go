@@ -98,21 +98,6 @@ func (header *MessageHeader) IsReplyingTo(sequence int32) bool {
 	return *header.replyFor == sequence
 }
 
-func (header *MessageHeader) PutInt64Header(key int32, value int64) {
-	encoded := make([]byte, 8)
-	binary.LittleEndian.PutUint64(encoded, uint64(value))
-	header.Headers[key] = encoded
-}
-
-func (header *MessageHeader) GetInt64Header(key int32) (int64, bool) {
-	encoded, ok := header.Headers[key]
-	if !ok || len(encoded) != 8 {
-		return 0, ok
-	}
-	result := binary.LittleEndian.Uint64(encoded)
-	return int64(result), true
-}
-
 func (header *MessageHeader) PutUint64Header(key int32, value uint64) {
 	encoded := make([]byte, 8)
 	binary.LittleEndian.PutUint64(encoded, value)
