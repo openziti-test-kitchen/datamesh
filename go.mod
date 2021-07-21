@@ -9,6 +9,7 @@ replace github.com/michaelquigley/pfxlog => ../../q/products/pfxlog
 replace github.com/openziti/foundation => ../foundation
 
 require (
+	github.com/golang/protobuf v1.5.2
 	github.com/michaelquigley/pfxlog v0.5.1
 	github.com/openziti-incubator/cf v0.0.1
 	github.com/openziti/foundation v0.15.56
