@@ -90,24 +90,50 @@ func newLinkBindHandler(link *link) *linkBindHandler {
 	return &linkBindHandler{link}
 }
 
-func (_ *linkBindHandler) BindChannel(ch channel.Channel) error {
-	ch.AddReceiveHandler(&linkControlReceiveHandler{})
+func (self *linkBindHandler) BindChannel(ch channel.Channel) error {
+	ch.AddReceiveHandler(&linkControlReceiveHandler{self.link})
 	ch.AddReceiveHandler(&linkPayloadReceiveHandler{})
 	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{})
 	return nil
 }
 
-type linkControlReceiveHandler struct{}
+type linkControlReceiveHandler struct{
+	link *link
+}
 
 func (_ *linkControlReceiveHandler) ContentType() int32 {
 	return int32(ControlContentType)
 }
 
-func (_ *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
+func (self *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
 	if ctrl, err := UnmarshallControl(msg); err == nil {
 		if ctrl.Flags == uint32(PingRequestControlFlag) {
-			log.Info("received ping request")
+			var found bool
+			var pingId string
+			pingId, found = msg.GetStringHeader(PingIdHeaderKey)
+			if found {
+				var stamp uint64
+				stamp, found = msg.GetUint64Header(PingTimestampHeaderKey)
+				if found {
+					headers := newHeaders()
+					headers.PutBytes(PingIdHeaderKey, []byte(pingId))
+					headers.PutInt64(PingTimestampHeaderKey, int64(stamp))
+					ctrl := NewControl(uint32(PingResponseControlFlag), headers)
+					err := self.link.SendControl(ctrl)
+					if err == nil {
+						logrus.Infof("sent response to [ping/%s]", pingId)
+					} else {
+						logrus.Errorf("error responding [ping/%s] (%v)", pingId, err)
+					}
+				} else {
+					logrus.Errorf("missing timestamp")
+				}
+			} else {
+				logrus.Errorf("missing ping identity")
+			}
+		} else if ctrl.Flags == uint32(PingResponseControlFlag) {
+			self.link.pingResponses <- msg
 		} else {
 			log.Error("unknown flags")
 		}

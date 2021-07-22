@@ -15,7 +15,7 @@ func (self *link) pinger() {
 	defer log.Warn("exited")
 
 	seq := sequence.NewSequence()
-	pending := make(map[string]*channel.Message)
+	pending := make(map[string]*Control)
 
 	for {
 		select {
@@ -30,7 +30,7 @@ func (self *link) pinger() {
 	}
 }
 
-func (self *link) pingerReceive(msg *channel.Message, pending map[string]*channel.Message) {
+func (self *link) pingerReceive(msg *channel.Message, pending map[string]*Control) {
 	var found bool
 	var stamp uint64
 	stamp, found = msg.GetUint64Header(PingTimestampHeaderKey)
@@ -47,11 +47,11 @@ func (self *link) pingerReceive(msg *channel.Message, pending map[string]*channe
 	}
 
 	delta := time.Since(time.Unix(0, int64(stamp)))
-	logrus.Infof("ping response [ping/%s] in [%s ms]", pingId, delta/time.Millisecond)
+	logrus.Infof("ping response [ping/%s] in [%dms]", pingId, delta.Milliseconds())
 	delete(pending, pingId)
 }
 
-func (self *link) pingerSend(seq *sequence.Sequence, pending map[string]*channel.Message) error {
+func (self *link) pingerSend(seq *sequence.Sequence, pending map[string]*Control) error {
 	pingId, err := seq.NextHash()
 	if err != nil {
 		return errors.Wrap(err, "generating ping sequence")
@@ -64,6 +64,7 @@ func (self *link) pingerSend(seq *sequence.Sequence, pending map[string]*channel
 	if err != nil {
 		return errors.Wrapf(err, "error sending [ping/%s]", pingId)
 	}
+	pending[pingId] = ctrl
 	logrus.Infof("sent [ping/%s]", pingId)
 	return nil
 }
