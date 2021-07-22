@@ -30,7 +30,7 @@ import (
  * Message headers notes
  * 0-127 reserved for channel
  * 128-255 reserved for headers that need to be reflected back to sender on responses
- *  128 is used for a message UUID for tracing
+ * 	128 is used for a message UUID for tracing
  * 1000-1099 reserved for edge messages
  * 1100-1199 is reserved for control plane messages
  * 2000-2500 is reserved for xgress messages
