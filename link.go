@@ -22,6 +22,7 @@ type Link interface {
 	SendControl(c *Control) error
 	SendPayload(p *Payload) error
 	SendAcknowledgement(a *Acknowledgement) error
+	Start() error
 	Close() error
 }
 
@@ -34,17 +35,18 @@ type link struct {
 	pingResponses chan *channel.Message
 }
 
-func newLink(cfg *LinkConfig, id, peer *identity.TokenId, ch channel.Channel, direction LinkDirection) *link {
+func newLink(cfg *LinkConfig, direction LinkDirection) *link {
 	l := &link{
 		cfg:           cfg,
-		id:            id,
-		peer:          peer,
-		ch:            ch,
 		direction:     direction,
 		pingResponses: make(chan *channel.Message, cfg.PingQueueLength),
 	}
-	go l.pinger()
 	return l
+}
+
+func (self *link) setChannel(ch channel.Channel) {
+	self.ch = ch
+	self.id = &identity.TokenId{Token: ch.ConnectionId()}
 }
 
 func (self *link) Id() *identity.TokenId {
@@ -71,11 +73,22 @@ func (self *link) SendAcknowledgement(a *Acknowledgement) error {
 	return errors.New("not implemented")
 }
 
+func (self *link) Start() error {
+	go self.pinger()
+	return nil
+}
+
 func (self *link) Close() error {
 	return errors.New("not implemented")
 }
 
-type linkBindHandler struct{}
+type linkBindHandler struct{
+	link *link
+}
+
+func newLinkBindHandler(link *link) *linkBindHandler {
+	return &linkBindHandler{link}
+}
 
 func (_ *linkBindHandler) BindChannel(ch channel.Channel) error {
 	ch.AddReceiveHandler(&linkControlReceiveHandler{})

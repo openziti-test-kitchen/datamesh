@@ -25,15 +25,18 @@ func (self *Listener) Listen(incoming chan<- *link) {
 	}
 	pfxlog.ContextLogger(self.id.Token).Infof("started")
 
-	options := channel.DefaultOptions()
-	options.BindHandlers = []channel.BindHandler{&linkBindHandler{}}
 	for {
+		l := newLink(self.cfg.LinkConfig, InboundLink)
+
+		options := channel.DefaultOptions()
+		options.BindHandlers = []channel.BindHandler{newLinkBindHandler(l)}
+
 		ch, err := channel.NewChannel("link", self.listener, options)
 		if err != nil {
 			logrus.Errorf("error accepting new link for [%s] (%v)", self.cfg.BindAddress, err)
 		}
+		l.setChannel(ch)
 
-		l := newLink(self.cfg.LinkConfig, &identity.TokenId{Token: ch.ConnectionId()}, nil, ch, InboundLink)
 		incoming <- l
 	}
 }

@@ -20,14 +20,16 @@ func NewDialer(cfg *DialerConfig, id *identity.TokenId) *Dialer {
 func (self *Dialer) Dial(endpoint transport.Address) (*link, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
+	l := newLink(self.cfg.LinkConfig, OutboundLink)
+
 	options := channel.DefaultOptions()
-	options.BindHandlers = []channel.BindHandler{&linkBindHandler{}}
+	options.BindHandlers = []channel.BindHandler{newLinkBindHandler(l)}
 	dialer := channel.NewClassicDialer(self.id, endpoint, nil)
 	ch, err := channel.NewChannel("link", dialer, options)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating channel")
 	}
+	l.setChannel(ch)
 
-	l := newLink(self.cfg.LinkConfig, &identity.TokenId{Token: ch.ConnectionId()}, nil, ch, OutboundLink)
 	return l, nil
 }
