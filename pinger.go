@@ -2,7 +2,7 @@ package datamesh
 
 import (
 	"github.com/michaelquigley/pfxlog"
-	"github.com/openziti/foundation/channel2"
+	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/openziti/foundation/util/sequence"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -15,7 +15,7 @@ func (self *link) pinger() {
 	defer log.Warn("exited")
 
 	seq := sequence.NewSequence()
-	pending := make(map[string]*channel2.Message)
+	pending := make(map[string]*channel.Message)
 
 	for {
 		select {
@@ -30,10 +30,10 @@ func (self *link) pinger() {
 	}
 }
 
-func (self *link) pingerReceive(msg *channel2.Message, pending map[string]*channel2.Message) {
+func (self *link) pingerReceive(msg *channel.Message, pending map[string]*channel.Message) {
 	var found bool
-	var stamp int64
-	stamp, found = msg.GetInt64Header(PingTimestampHeaderKey)
+	var stamp uint64
+	stamp, found = msg.GetUint64Header(PingTimestampHeaderKey)
 	if !found {
 		logrus.Errorf("ping response missing timestamp")
 		return
@@ -46,12 +46,12 @@ func (self *link) pingerReceive(msg *channel2.Message, pending map[string]*chann
 		return
 	}
 
-	delta := time.Since(time.Unix(0, stamp))
+	delta := time.Since(time.Unix(0, int64(stamp)))
 	logrus.Infof("ping response [ping/%s] in [%s ms]", pingId, delta/time.Millisecond)
 	delete(pending, pingId)
 }
 
-func (self *link) pingerSend(seq *sequence.Sequence, pending map[string]*channel2.Message) error {
+func (self *link) pingerSend(seq *sequence.Sequence, pending map[string]*channel.Message) error {
 	pingId, err := seq.NextHash()
 	if err != nil {
 		return errors.Wrap(err, "generating ping sequence")

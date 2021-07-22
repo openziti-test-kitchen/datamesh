@@ -2,7 +2,7 @@ package datamesh
 
 import (
 	"github.com/michaelquigley/pfxlog"
-	"github.com/openziti/foundation/channel2"
+	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -29,19 +29,19 @@ type link struct {
 	cfg           *LinkConfig
 	id            *identity.TokenId
 	peer          *identity.TokenId
-	ch            channel2.Channel
+	ch            channel.Channel
 	direction     LinkDirection
-	pingResponses chan *channel2.Message
+	pingResponses chan *channel.Message
 }
 
-func newLink(cfg *LinkConfig, id, peer *identity.TokenId, ch channel2.Channel, direction LinkDirection) *link {
+func newLink(cfg *LinkConfig, id, peer *identity.TokenId, ch channel.Channel, direction LinkDirection) *link {
 	l := &link{
 		cfg:           cfg,
 		id:            id,
 		peer:          peer,
 		ch:            ch,
 		direction:     direction,
-		pingResponses: make(chan *channel2.Message, cfg.PingQueueLength),
+		pingResponses: make(chan *channel.Message, cfg.PingQueueLength),
 	}
 	go l.pinger()
 	return l
@@ -77,7 +77,7 @@ func (self *link) Close() error {
 
 type linkBindHandler struct{}
 
-func (_ *linkBindHandler) BindChannel(ch channel2.Channel) error {
+func (_ *linkBindHandler) BindChannel(ch channel.Channel) error {
 	ch.AddReceiveHandler(&linkControlReceiveHandler{})
 	ch.AddReceiveHandler(&linkPayloadReceiveHandler{})
 	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{})
@@ -90,7 +90,7 @@ func (_ *linkControlReceiveHandler) ContentType() int32 {
 	return int32(ControlContentType)
 }
 
-func (_ *linkControlReceiveHandler) HandleReceive(msg *channel2.Message, ch channel2.Channel) {
+func (_ *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
 	if ctrl, err := UnmarshallControl(msg); err == nil {
 		if ctrl.Flags == uint32(PingRequestControlFlag) {
@@ -109,7 +109,7 @@ func (_ *linkPayloadReceiveHandler) ContentType() int32 {
 	return int32(PayloadContentType)
 }
 
-func (_ *linkPayloadReceiveHandler) HandleReceive(m *channel2.Message, _ channel2.Channel) {
+func (_ *linkPayloadReceiveHandler) HandleReceive(m *channel.Message, _ channel.Channel) {
 	logrus.Infof("received [%d] bytes", len(m.Body))
 }
 
@@ -119,6 +119,6 @@ func (_ *linkAcknowledgementReceiveHandler) ContentType() int32 {
 	return int32(AckContentType)
 }
 
-func (_ *linkAcknowledgementReceiveHandler) HandleReceive(m *channel2.Message, _ channel2.Channel) {
+func (_ *linkAcknowledgementReceiveHandler) HandleReceive(m *channel.Message, _ channel.Channel) {
 	logrus.Infof("received [%d] bytes", len(m.Body))
 }

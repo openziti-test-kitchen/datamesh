@@ -2,7 +2,7 @@ package datamesh
 
 import (
 	"github.com/michaelquigley/pfxlog"
-	"github.com/openziti/foundation/channel2"
+	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
 	"github.com/pkg/errors"
@@ -20,10 +20,10 @@ func NewDialer(cfg *DialerConfig, id *identity.TokenId) *Dialer {
 func (self *Dialer) Dial(endpoint transport.Address) (*link, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
-	options := channel2.DefaultOptions()
-	options.BindHandlers = []channel2.BindHandler{&linkBindHandler{}}
-	dialer := channel2.NewClassicDialer(self.id, endpoint, nil)
-	ch, err := channel2.NewChannel("link", dialer, options)
+	options := channel.DefaultOptions()
+	options.BindHandlers = []channel.BindHandler{&linkBindHandler{}}
+	dialer := channel.NewClassicDialer(self.id, endpoint, nil)
+	ch, err := channel.NewChannel("link", dialer, options)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating channel")
 	}

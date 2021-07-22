@@ -2,7 +2,7 @@ package datamesh
 
 import (
 	"encoding/binary"
-	"github.com/openziti/foundation/channel2"
+	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/pkg/errors"
 )
 
@@ -76,8 +76,8 @@ func NewControl(flags uint32, headers map[int32][]byte) *Control {
 	return &Control{flags, headers}
 }
 
-func (self *Control) Marshal() *channel2.Message {
-	msg := channel2.NewMessage(int32(ControlContentType), nil)
+func (self *Control) Marshal() *channel.Message {
+	msg := channel.NewMessage(int32(ControlContentType), nil)
 	msg.PutUint32Header(ControlFlagsHeaderKey, self.Flags)
 	for k, v := range self.Headers {
 		msg.Headers[k] = v
@@ -85,7 +85,7 @@ func (self *Control) Marshal() *channel2.Message {
 	return msg
 }
 
-func UnmarshallControl(msg *channel2.Message) (*Control, error) {
+func UnmarshallControl(msg *channel.Message) (*Control, error) {
 	control := &Control{}
 	if flags, found := msg.GetUint32Header(ControlFlagsHeaderKey); found {
 		control.Flags = flags
