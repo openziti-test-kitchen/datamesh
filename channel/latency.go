@@ -32,9 +32,9 @@ func (h *LatencyHandler) ContentType() int32 {
 }
 
 func (h *LatencyHandler) HandleReceive(msg *Message, ch Channel) {
-	// need to send response in a separate go-routine. We get stuck sending, we'll also pause the receiving side
-	// limit the number of concurrent responses
 	if count := atomic.AddInt32(&h.responses, 1); count < 2 {
+		// need to send response in a separate go-routine. We get stuck sending, we'll also pause the receiving side
+		// limit the number of concurrent responses
 		go func() {
 			defer atomic.AddInt32(&h.responses, -1)
 			response := NewResult(true, "")
