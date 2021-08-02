@@ -82,7 +82,7 @@ func (self *link) Close() error {
 	return errors.New("not implemented")
 }
 
-type linkBindHandler struct{
+type linkBindHandler struct {
 	link *link
 }
 
@@ -97,7 +97,7 @@ func (self *linkBindHandler) BindChannel(ch channel.Channel) error {
 	return nil
 }
 
-type linkControlReceiveHandler struct{
+type linkControlReceiveHandler struct {
 	link *link
 }
 
