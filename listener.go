@@ -8,6 +8,7 @@ import (
 )
 
 type Listener struct {
+	datamesh *Datamesh
 	cfg      *ListenerConfig
 	id       *identity.TokenId
 	listener channel.UnderlayListener
@@ -17,7 +18,8 @@ func NewListener(cfg *ListenerConfig, id *identity.TokenId) *Listener {
 	return &Listener{cfg: cfg, id: id}
 }
 
-func (self *Listener) Listen(incoming chan<- *link) {
+func (self *Listener) Listen(datamesh *Datamesh, incoming chan<- *link) {
+	self.datamesh = datamesh
 	self.listener = channel.NewClassicListener(self.id, self.cfg.BindAddress, channel.DefaultConnectOptions(), nil)
 	if err := self.listener.Listen(); err != nil {
 		logrus.Errorf("error starting listener [%s] (%v)", self.cfg.BindAddress, err)
@@ -29,7 +31,7 @@ func (self *Listener) Listen(incoming chan<- *link) {
 		l := newLink(self.cfg.LinkConfig, InboundLink)
 
 		options := channel.DefaultOptions()
-		options.BindHandlers = []channel.BindHandler{newLinkBindHandler(l)}
+		options.BindHandlers = []channel.BindHandler{newLinkBindHandler(self.datamesh, l)}
 
 		ch, err := channel.NewChannel("link", self.listener, options)
 		if err != nil {

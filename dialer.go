@@ -17,13 +17,13 @@ func NewDialer(cfg *DialerConfig, id *identity.TokenId) *Dialer {
 	return &Dialer{cfg, id}
 }
 
-func (self *Dialer) Dial(endpoint transport.Address) (*link, error) {
+func (self *Dialer) Dial(datamesh *Datamesh, endpoint transport.Address) (*link, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
 	l := newLink(self.cfg.LinkConfig, OutboundLink)
 
 	options := channel.DefaultOptions()
-	options.BindHandlers = []channel.BindHandler{newLinkBindHandler(l)}
+	options.BindHandlers = []channel.BindHandler{newLinkBindHandler(datamesh, l)}
 	dialer := channel.NewClassicDialer(self.id, endpoint, nil)
 	ch, err := channel.NewChannel("link", dialer, options)
 	if err != nil {

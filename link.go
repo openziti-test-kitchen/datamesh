@@ -83,11 +83,12 @@ func (self *link) Close() error {
 }
 
 type linkBindHandler struct {
-	link *link
+	datamesh *Datamesh
+	link     *link
 }
 
-func newLinkBindHandler(link *link) *linkBindHandler {
-	return &linkBindHandler{link}
+func newLinkBindHandler(datamesh *Datamesh, link *link) *linkBindHandler {
+	return &linkBindHandler{datamesh, link}
 }
 
 func (self *linkBindHandler) BindChannel(ch channel.Channel) error {

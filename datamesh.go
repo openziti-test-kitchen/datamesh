@@ -41,7 +41,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 
 func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
-		go v.Listen(self.incoming)
+		go v.Listen(self, self.incoming)
 	}
 	if len(self.listeners) > 0 {
 		go self.linkAccepter()
@@ -52,7 +52,7 @@ func (self *Datamesh) Start() {
 
 func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) {
 	if dialer, found := self.dialers[id]; found {
-		l, err := dialer.Dial(endpoint)
+		l, err := dialer.Dial(self, endpoint)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
 		}
