@@ -51,20 +51,16 @@ type Control struct {
 	Headers map[int32][]byte
 }
 
-type Routable struct {
+type Payload struct {
+	Sequence  int32
 	SessionId string
 	Flags     uint32
-}
-
-type Payload struct {
-	Routable
-	Sequence int32
-	Headers  map[uint8][]byte
-	Data     []byte
+	Headers   map[uint8][]byte
+	Data      []byte
 }
 
 type Acknowledgement struct {
-	Routable
+	SessionId string
 	Sequences []int32
 }
 
@@ -101,6 +97,10 @@ func UnmarshallControl(msg *channel.Message) (*Control, error) {
 		}
 	}
 	return control, nil
+}
+
+func NewPayload(sequence int32, sessionId string) *Payload {
+	return &Payload{Sequence: sequence, SessionId: sessionId}
 }
 
 /*
