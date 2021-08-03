@@ -21,11 +21,14 @@ const (
 type HeaderKey uint32
 
 const (
-	MinHeaderKey           = 2000
-	ControlFlagsHeaderKey  = 2256
-	PingIdHeaderKey        = 2257
-	PingTimestampHeaderKey = 2258
-	MaxHeaderKey           = 2999
+	MinHeaderKey              = 2000
+	ControlFlagsHeaderKey     = 2256
+	PingIdHeaderKey           = 2257
+	PingTimestampHeaderKey    = 2258
+	PayloadSequenceHeaderKey  = 2300
+	PayloadSessionIdHeaderKey = 2301
+	PayloadFlagsHeaderKey     = 2302
+	MaxHeaderKey              = 2999
 )
 
 type ControlFlag uint32
@@ -55,7 +58,7 @@ type Payload struct {
 	Sequence  int32
 	SessionId string
 	Flags     uint32
-	Headers   map[uint8][]byte
+	Headers   map[int32][]byte
 	Data      []byte
 }
 
@@ -81,7 +84,7 @@ func (self *Control) Marshal() *channel.Message {
 	return msg
 }
 
-func UnmarshallControl(msg *channel.Message) (*Control, error) {
+func UnmarshalControl(msg *channel.Message) (*Control, error) {
 	control := &Control{}
 	if flags, found := msg.GetUint32Header(ControlFlagsHeaderKey); found {
 		control.Flags = flags
@@ -101,6 +104,43 @@ func UnmarshallControl(msg *channel.Message) (*Control, error) {
 
 func NewPayload(sequence int32, sessionId string) *Payload {
 	return &Payload{Sequence: sequence, SessionId: sessionId}
+}
+
+func (self *Payload) Marshal() *channel.Message {
+	msg := channel.NewMessage(int32(PayloadContentType), self.Data)
+	for k, v := range self.Headers {
+		msg.Headers[k] = v
+	}
+	msg.PutUint32Header(PayloadSequenceHeaderKey, uint32(self.Sequence))
+	msg.Headers[PayloadSessionIdHeaderKey] = []byte(self.SessionId)
+	if self.Flags > 0 {
+		msg.PutUint32Header(PayloadFlagsHeaderKey, self.Flags)
+	}
+	return msg
+}
+
+func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
+	p := &Payload{Data: make([]byte, len(msg.Body))}
+	copy(p.Data, msg.Body)
+	if sequence, found := msg.GetUint32Header(PayloadSequenceHeaderKey); found {
+		p.Sequence = int32(sequence)
+	} else {
+		return nil, errors.New("missing sequence from payload")
+	}
+	if sessionId, found := msg.Headers[PayloadSessionIdHeaderKey]; found {
+		p.SessionId = string(sessionId)
+	} else {
+		return nil, errors.New("missing sessionId from payload")
+	}
+	if flags, found := msg.GetUint32Header(PayloadFlagsHeaderKey); found {
+		p.Flags = flags
+	}
+	for k, v := range msg.Headers {
+		if k < MinHeaderKey && k > MaxHeaderKey {
+			p.Headers[k] = v
+		}
+	}
+	return p, nil
 }
 
 /*

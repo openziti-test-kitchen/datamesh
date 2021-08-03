@@ -107,7 +107,7 @@ func (_ *linkControlReceiveHandler) ContentType() int32 {
 
 func (self *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
-	if ctrl, err := UnmarshallControl(msg); err == nil {
+	if ctrl, err := UnmarshalControl(msg); err == nil {
 		if ctrl.Flags == uint32(PingRequestControlFlag) {
 			var found bool
 			var pingId string
