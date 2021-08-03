@@ -16,7 +16,7 @@ func newForwarder() *Forwarder {
 	}
 }
 
-func (fw *Forwarder) Forward(msg *channel.Message) error {
+func (fw *Forwarder) Forward(srcId string, msg *channel.Message) error {
 	switch msg.ContentType {
 	default:
 		return errors.Errorf("cannot forward content type [%d]", msg.ContentType)

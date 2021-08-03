@@ -93,8 +93,8 @@ func newLinkBindHandler(datamesh *Datamesh, link *link) *linkBindHandler {
 
 func (self *linkBindHandler) BindChannel(ch channel.Channel) error {
 	ch.AddReceiveHandler(&linkControlReceiveHandler{self.link})
-	ch.AddReceiveHandler(&linkPayloadReceiveHandler{})
-	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{})
+	ch.AddReceiveHandler(&linkPayloadReceiveHandler{self.datamesh, self.link})
+	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{self.datamesh, self.link})
 	return nil
 }
 
@@ -143,7 +143,10 @@ func (self *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch ch
 	}
 }
 
-type linkPayloadReceiveHandler struct{}
+type linkPayloadReceiveHandler struct {
+	datamesh *Datamesh
+	l        *link
+}
 
 func (_ *linkPayloadReceiveHandler) ContentType() int32 {
 	return int32(PayloadContentType)
@@ -153,7 +156,10 @@ func (_ *linkPayloadReceiveHandler) HandleReceive(m *channel.Message, _ channel.
 	logrus.Infof("received [%d] bytes", len(m.Body))
 }
 
-type linkAcknowledgementReceiveHandler struct{}
+type linkAcknowledgementReceiveHandler struct {
+	datamesh *Datamesh
+	l        *link
+}
 
 func (_ *linkAcknowledgementReceiveHandler) ContentType() int32 {
 	return int32(AckContentType)
