@@ -16,6 +16,7 @@ type Datamesh struct {
 	incoming  chan *link
 	links     map[string]*link
 	Fw        *Forwarder
+	Handlers  *Handlers
 	lock      sync.Mutex
 }
 
@@ -27,6 +28,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		incoming:  make(chan *link, 128),
 		links:     make(map[string]*link),
 		Fw:        newForwarder(),
+		Handlers:  &Handlers{},
 	}
 	for _, listenerCf := range cf.Listeners {
 		d.listeners[listenerCf.Id] = NewListener(listenerCf, &identity.TokenId{Token: listenerCf.Id})
