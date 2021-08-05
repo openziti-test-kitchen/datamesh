@@ -3,8 +3,10 @@ package datamesh
 import (
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
+	"github.com/openziti/foundation/util/sequence"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"sync"
 )
 
 type Endpoint interface {
@@ -16,9 +18,12 @@ type Datamesh struct {
 	self      *identity.TokenId
 	listeners map[string]*Listener
 	dialers   map[string]*Dialer
+	nics      map[string]NIC
 	overlay   *Overlay
 	Fwd       *Forwarder
 	Handlers  *Handlers
+	sequence  *sequence.Sequence
+	lock      sync.Mutex
 }
 
 func NewDatamesh(cf *Config) *Datamesh {
@@ -29,6 +34,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		overlay:   newGraph(),
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
+		sequence:  sequence.NewSequence(),
 	}
 	d.overlay.addLinkCb = d.addLinkCb
 	for _, listenerCf := range cf.Listeners {
@@ -60,6 +66,20 @@ func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, err
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
 	}
+}
+
+func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
+	self.lock.Lock()
+	defer self.lock.Unlock()
+
+	addr, err := self.sequence.NextHash()
+	if err != nil {
+		return nil, err
+	}
+	nic := newNIC(Address(addr), endpoint)
+	self.nics[addr] = nic
+
+	return nic, nil
 }
 
 func (self *Datamesh) addLinkCb(l *link) {
