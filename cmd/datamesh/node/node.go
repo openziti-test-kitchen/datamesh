@@ -37,14 +37,14 @@ func node(_ *cobra.Command, args []string) {
 
 	d := datamesh.NewDatamesh(cfg.Datamesh)
 	d.Handlers.AddLinkUpHandler(func(l datamesh.Link) {
-		logrus.Infof("would create new circuit with [link/%s]", l.LinkId())
+		logrus.Infof("would create new circuit with [link/%s]", l.Address())
 	})
 	d.Start()
 
 	for _, peer := range cfg.Peers {
 		l, err := d.DialLink("default", peer)
 		if err == nil {
-			logrus.Infof("connected link [%s]", l.LinkId())
+			logrus.Infof("connected link [link/%s]", l.Address())
 		} else {
 			logrus.Errorf("error connecting link (%v)", err)
 		}

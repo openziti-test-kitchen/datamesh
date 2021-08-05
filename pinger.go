@@ -10,7 +10,7 @@ import (
 )
 
 func (self *link) pinger() {
-	log := pfxlog.ContextLogger(string(self.LinkId()))
+	log := pfxlog.ContextLogger(string(self.Address()))
 	log.Info("started")
 	defer log.Warn("exited")
 

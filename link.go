@@ -15,8 +15,6 @@ const (
 	OutboundLink LinkDirection = 1
 )
 
-type LinkId string
-
 type Link interface {
 	Destination
 	Start() error
@@ -50,7 +48,7 @@ func (self *link) setChannel(ch channel.Channel) {
 }
 
 func (self *link) Address() Address {
-	return self.addr
+	return Address(self.id.Token)
 }
 
 func (self *link) SendPayload(p *Payload) error {
