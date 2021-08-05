@@ -5,7 +5,6 @@ import (
 	"github.com/openziti/foundation/transport"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"sync"
 )
 
 type Datamesh struct {
@@ -13,11 +12,9 @@ type Datamesh struct {
 	self      *identity.TokenId
 	listeners map[string]*Listener
 	dialers   map[string]*Dialer
-	incoming  chan *link
-	links     map[string]*link
-	Fw        *Forwarder
+	graph     *Graph
+	Fwd       *Forwarder
 	Handlers  *Handlers
-	lock      sync.Mutex
 }
 
 func NewDatamesh(cf *Config) *Datamesh {
@@ -25,9 +22,8 @@ func NewDatamesh(cf *Config) *Datamesh {
 		cf:        cf,
 		listeners: make(map[string]*Listener),
 		dialers:   make(map[string]*Dialer),
-		incoming:  make(chan *link, 128),
-		links:     make(map[string]*link),
-		Fw:        newForwarder(),
+		graph:     newGraph(),
+		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
 	}
 	for _, listenerCf := range cf.Listeners {
@@ -43,13 +39,9 @@ func NewDatamesh(cf *Config) *Datamesh {
 
 func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
-		go v.Listen(self, self.incoming)
+		go v.Listen(self, self.graph.incoming)
 	}
-	if len(self.listeners) > 0 {
-		go self.linkAccepter()
-	} else {
-		logrus.Warn("no listeners, not starting accepter")
-	}
+	self.graph.start()
 }
 
 func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) {
@@ -58,33 +50,9 @@ func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) 
 		if err != nil {
 			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
 		}
-		self.addLink(l)
+		self.graph.addLink(l)
 		return l, nil
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
-	}
-}
-
-func (self *Datamesh) addLink(l *link) {
-	self.lock.Lock()
-	defer self.lock.Unlock()
-
-	if err := l.Start(); err == nil {
-		self.links[l.Id().Token] = l
-		logrus.Infof("added link [link/%s]", l.Id().Token)
-	} else {
-		logrus.Errorf("error starting [link/%s] (%v)", l.Id().Token, err)
-	}
-}
-
-func (self *Datamesh) linkAccepter() {
-	logrus.Info("started")
-	defer logrus.Warn("exited")
-
-	for {
-		select {
-		case l := <-self.incoming:
-			self.addLink(l)
-		}
 	}
 }
