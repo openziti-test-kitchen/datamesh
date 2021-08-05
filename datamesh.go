@@ -26,6 +26,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
 	}
+	d.overlay.addLinkCb = d.addLinkCb
 	for _, listenerCf := range cf.Listeners {
 		d.listeners[listenerCf.Id] = NewListener(listenerCf, &identity.TokenId{Token: listenerCf.Id})
 		logrus.Infof("added listener at [%s]", listenerCf.BindAddress)
@@ -57,3 +58,8 @@ func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, err
 	}
 }
 
+func (self *Datamesh) addLinkCb(l *link) {
+	for _, handler := range self.Handlers.linkUpHandlers {
+		handler(l)
+	}
+}

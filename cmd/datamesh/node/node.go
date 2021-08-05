@@ -36,6 +36,9 @@ func node(_ *cobra.Command, args []string) {
 	logrus.Info(cf.Dump(cfg, cfo))
 
 	d := datamesh.NewDatamesh(cfg.Datamesh)
+	d.Handlers.AddLinkUpHandler(func(l datamesh.Link) {
+		logrus.Infof("would create new circuit with [link/%s]", l.LinkId())
+	})
 	d.Start()
 
 	for _, peer := range cfg.Peers {

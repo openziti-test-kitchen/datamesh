@@ -29,6 +29,9 @@ func (self *Overlay) addLink(l *link) {
 
 	if err := l.Start(); err == nil {
 		self.links[l.LinkId()] = l
+		if self.addLinkCb != nil {
+			self.addLinkCb(l)
+		}
 		logrus.Infof("added link [link/%s]", l.LinkId())
 	} else {
 		logrus.Errorf("error starting [link/%s] (%v)", l.LinkId(), err)

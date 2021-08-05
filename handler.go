@@ -1,10 +1,10 @@
 package datamesh
 
 // LinkUpHandler is invoked whenever a new link is brought up
-type LinkUpHandler func(string)
+type LinkUpHandler func(Link)
 
 // LinkDownHandler is invoked whenever a link goes down
-type LinkDownHandler func(string)
+type LinkDownHandler func(Link)
 
 type Handlers struct {
 	linkUpHandlers   []LinkUpHandler
