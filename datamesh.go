@@ -12,7 +12,7 @@ type Datamesh struct {
 	self      *identity.TokenId
 	listeners map[string]*Listener
 	dialers   map[string]*Dialer
-	graph     *Graph
+	overlay   *Overlay
 	Fwd       *Forwarder
 	Handlers  *Handlers
 }
@@ -22,7 +22,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		cf:        cf,
 		listeners: make(map[string]*Listener),
 		dialers:   make(map[string]*Dialer),
-		graph:     newGraph(),
+		overlay:   newGraph(),
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
 	}
@@ -39,20 +39,21 @@ func NewDatamesh(cf *Config) *Datamesh {
 
 func (self *Datamesh) Start() {
 	for _, v := range self.listeners {
-		go v.Listen(self, self.graph.incoming)
+		go v.Listen(self, self.overlay.incoming)
 	}
-	self.graph.start()
+	self.overlay.start()
 }
 
-func (self *Datamesh) Dial(id string, endpoint transport.Address) (Link, error) {
+func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, error) {
 	if dialer, found := self.dialers[id]; found {
 		l, err := dialer.Dial(self, endpoint)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error dialing [%s]", endpoint)
+			return nil, errors.Wrapf(err, "error dialing link at [%s]", endpoint)
 		}
-		self.graph.addLink(l)
+		self.overlay.addLink(l)
 		return l, nil
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
 	}
 }
+

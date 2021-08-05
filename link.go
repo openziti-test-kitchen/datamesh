@@ -15,8 +15,10 @@ const (
 	OutboundLink LinkDirection = 1
 )
 
+type LinkId string
+
 type Link interface {
-	Id() *identity.TokenId
+	LinkId() LinkId
 	Peer() *identity.TokenId
 	Direction() LinkDirection
 	SendControl(c *Control) error
@@ -49,8 +51,8 @@ func (self *link) setChannel(ch channel.Channel) {
 	self.id = &identity.TokenId{Token: ch.ConnectionId()}
 }
 
-func (self *link) Id() *identity.TokenId {
-	return self.id
+func (self *link) LinkId() LinkId {
+	return LinkId(self.id.Token)
 }
 
 func (self *link) Peer() *identity.TokenId {
