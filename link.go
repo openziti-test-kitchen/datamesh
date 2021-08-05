@@ -18,18 +18,16 @@ const (
 type LinkId string
 
 type Link interface {
-	LinkId() LinkId
+	Destination
+	Start() error
 	Peer() *identity.TokenId
 	Direction() LinkDirection
 	SendControl(c *Control) error
-	SendPayload(p *Payload) error
-	SendAcknowledgement(a *Acknowledgement) error
-	Start() error
-	Close() error
 }
 
 type link struct {
 	cfg           *LinkConfig
+	addr          Address
 	id            *identity.TokenId
 	peer          *identity.TokenId
 	ch            channel.Channel
@@ -51,8 +49,25 @@ func (self *link) setChannel(ch channel.Channel) {
 	self.id = &identity.TokenId{Token: ch.ConnectionId()}
 }
 
-func (self *link) LinkId() LinkId {
-	return LinkId(self.id.Token)
+func (self *link) Address() Address {
+	return self.addr
+}
+
+func (self *link) SendPayload(p *Payload) error {
+	return errors.New("not implemented")
+}
+
+func (self *link) SendAcknowledgement(a *Acknowledgement) error {
+	return errors.New("not implemented")
+}
+
+func (self *link) Close() error {
+	return errors.New("not implemented")
+}
+
+func (self *link) Start() error {
+	go self.pinger()
+	return nil
 }
 
 func (self *link) Peer() *identity.TokenId {
@@ -65,23 +80,6 @@ func (self *link) Direction() LinkDirection {
 
 func (self *link) SendControl(c *Control) error {
 	return self.ch.Send(c.Marshal())
-}
-
-func (self *link) SendPayload(p *Payload) error {
-	return errors.New("not implemented")
-}
-
-func (self *link) SendAcknowledgement(a *Acknowledgement) error {
-	return errors.New("not implemented")
-}
-
-func (self *link) Start() error {
-	go self.pinger()
-	return nil
-}
-
-func (self *link) Close() error {
-	return errors.New("not implemented")
 }
 
 type linkBindHandler struct {

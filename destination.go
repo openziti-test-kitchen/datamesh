@@ -1,9 +1,9 @@
 package datamesh
 
-import "github.com/openziti/foundation/identity/identity"
+type Address string
 
 type Destination interface {
-	Id() *identity.TokenId
+	Address() Address
 	SendPayload(p *Payload) error
 	SendAcknowledgement(a *Acknowledgement) error
 	Close() error

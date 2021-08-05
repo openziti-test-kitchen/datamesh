@@ -7,6 +7,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type Endpoint interface {
+	Rx([]byte) error
+}
+
 type Datamesh struct {
 	cf        *Config
 	self      *identity.TokenId
