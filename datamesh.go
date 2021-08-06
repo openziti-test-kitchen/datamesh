@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+type CircuitId string
+
 type Endpoint interface {
 	Rx([]byte) error
 }
