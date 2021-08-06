@@ -167,7 +167,7 @@ type linkAcknowledgementReceiveHandler struct {
 }
 
 func (_ *linkAcknowledgementReceiveHandler) ContentType() int32 {
-	return int32(AckContentType)
+	return int32(AcknowledgementContentType)
 }
 
 func (_ *linkAcknowledgementReceiveHandler) HandleReceive(m *channel.Message, _ channel.Channel) {

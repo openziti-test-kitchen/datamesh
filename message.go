@@ -13,22 +13,22 @@ import (
 type ContentType uint32
 
 const (
-	ControlContentType ContentType = 10099
-	PayloadContentType ContentType = 10100
-	AckContentType     ContentType = 10101
+	ControlContentType         ContentType = 10099
+	PayloadContentType         ContentType = 10100
+	AcknowledgementContentType ContentType = 10101
 )
 
 type HeaderKey uint32
 
 const (
-	MinHeaderKey              = 2000
-	ControlFlagsHeaderKey     = 2256
-	PingIdHeaderKey           = 2257
-	PingTimestampHeaderKey    = 2258
-	PayloadSequenceHeaderKey  = 2300
-	PayloadCircuitIdHeaderKey = 2301
-	PayloadFlagsHeaderKey     = 2302
-	MaxHeaderKey              = 2999
+	MinHeaderKey             = 2000
+	CircuitIdHeaderKey       = 2001
+	ControlFlagsHeaderKey    = 2256
+	PingIdHeaderKey          = 2257
+	PingTimestampHeaderKey   = 2258
+	PayloadSequenceHeaderKey = 2300
+	PayloadFlagsHeaderKey    = 2302
+	MaxHeaderKey             = 2999
 )
 
 type ControlFlag uint32
@@ -112,7 +112,7 @@ func (self *Payload) Marshal() *channel.Message {
 		msg.Headers[k] = v
 	}
 	msg.PutUint32Header(PayloadSequenceHeaderKey, uint32(self.Sequence))
-	msg.Headers[PayloadCircuitIdHeaderKey] = []byte(self.CircuitId)
+	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
 	if self.Flags > 0 {
 		msg.PutUint32Header(PayloadFlagsHeaderKey, self.Flags)
 	}
@@ -127,7 +127,7 @@ func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
 	} else {
 		return nil, errors.New("missing sequence from payload")
 	}
-	if circuitId, found := msg.Headers[PayloadCircuitIdHeaderKey]; found {
+	if circuitId, found := msg.Headers[CircuitIdHeaderKey]; found {
 		p.CircuitId = CircuitId(circuitId)
 	} else {
 		return nil, errors.New("missing circuitId from payload")
@@ -141,6 +141,18 @@ func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
 		}
 	}
 	return p, nil
+}
+
+func NewAcknowledgement(circuitId CircuitId, sequences []int32) *Acknowledgement {
+	return &Acknowledgement{CircuitId: circuitId, Sequences: sequences}
+}
+
+func (self *Acknowledgement) Marshal() *channel.Message {
+	return nil
+}
+
+func UnmarshalAcknowledgement(msg *channel.Message) (*Acknowledgement, error) {
+	return nil, errors.New("not implemented")
 }
 
 /*
