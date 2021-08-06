@@ -78,6 +78,9 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 	}
 	nic := newNIC(Address(addr), endpoint)
 	self.nics[addr] = nic
+	self.lock.Unlock()
+
+	self.Fwd.addDestination(nic)
 
 	return nic, nil
 }
