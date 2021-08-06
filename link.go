@@ -150,8 +150,15 @@ func (_ *linkPayloadReceiveHandler) ContentType() int32 {
 	return int32(PayloadContentType)
 }
 
-func (_ *linkPayloadReceiveHandler) HandleReceive(m *channel.Message, _ channel.Channel) {
-	logrus.Infof("received [%d] bytes", len(m.Body))
+func (self *linkPayloadReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
+	log := pfxlog.ContextLogger(ch.ConnectionId())
+	if p, err := UnmarshalPayload(msg); err == nil {
+		if err := self.datamesh.Fwd.ForwardPayload(p.CircuitId, self.l.Address(), p); err != nil {
+			log.Errorf("error forwarding (%v)", err)
+		}
+	} else {
+		log.Errorf("error unmarshalling (%v)", err)
+	}
 }
 
 type linkAcknowledgementReceiveHandler struct {

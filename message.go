@@ -26,7 +26,7 @@ const (
 	PingIdHeaderKey           = 2257
 	PingTimestampHeaderKey    = 2258
 	PayloadSequenceHeaderKey  = 2300
-	PayloadSessionIdHeaderKey = 2301
+	PayloadCircuitIdHeaderKey = 2301
 	PayloadFlagsHeaderKey     = 2302
 	MaxHeaderKey              = 2999
 )
@@ -56,14 +56,14 @@ type Control struct {
 
 type Payload struct {
 	Sequence  int32
-	SessionId string
+	CircuitId CircuitId
 	Flags     uint32
 	Headers   map[int32][]byte
 	Data      []byte
 }
 
 type Acknowledgement struct {
-	SessionId string
+	CircuitId CircuitId
 	Sequences []int32
 }
 
@@ -102,8 +102,8 @@ func UnmarshalControl(msg *channel.Message) (*Control, error) {
 	return control, nil
 }
 
-func NewPayload(sequence int32, sessionId string) *Payload {
-	return &Payload{Sequence: sequence, SessionId: sessionId}
+func NewPayload(sequence int32, circuitId CircuitId) *Payload {
+	return &Payload{Sequence: sequence, CircuitId: circuitId}
 }
 
 func (self *Payload) Marshal() *channel.Message {
@@ -112,7 +112,7 @@ func (self *Payload) Marshal() *channel.Message {
 		msg.Headers[k] = v
 	}
 	msg.PutUint32Header(PayloadSequenceHeaderKey, uint32(self.Sequence))
-	msg.Headers[PayloadSessionIdHeaderKey] = []byte(self.SessionId)
+	msg.Headers[PayloadCircuitIdHeaderKey] = []byte(self.CircuitId)
 	if self.Flags > 0 {
 		msg.PutUint32Header(PayloadFlagsHeaderKey, self.Flags)
 	}
@@ -127,8 +127,8 @@ func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
 	} else {
 		return nil, errors.New("missing sequence from payload")
 	}
-	if sessionId, found := msg.Headers[PayloadSessionIdHeaderKey]; found {
-		p.SessionId = string(sessionId)
+	if sessionId, found := msg.Headers[PayloadCircuitIdHeaderKey]; found {
+		p.CircuitId = CircuitId(sessionId)
 	} else {
 		return nil, errors.New("missing sessionId from payload")
 	}
