@@ -3,7 +3,9 @@ package datamesh
 import (
 	"encoding/binary"
 	"github.com/openziti-incubator/datamesh/channel"
+	"github.com/openziti/dilithium/protocol/westworld3"
 	"github.com/pkg/errors"
+	"sort"
 )
 
 /*
@@ -153,6 +155,28 @@ func (self *Acknowledgement) Marshal() *channel.Message {
 
 func UnmarshalAcknowledgement(msg *channel.Message) (*Acknowledgement, error) {
 	return nil, errors.New("not implemented")
+}
+
+func (self *Acknowledgement) sequencesToAcks() []westworld3.Ack {
+	if len(self.Sequences) < 1 {
+		return nil
+	}
+	if len(self.Sequences) == 1 {
+		return []westworld3.Ack{{Start: self.Sequences[0], End: self.Sequences[0]}}
+	}
+
+	sort.Slice(self.Sequences, func(i, j int) bool { return self.Sequences[i] < self.Sequences[j] })
+	ackArr := []westworld3.Ack{{Start: self.Sequences[0], End: self.Sequences[0]}}
+	ackArrI := 0
+	for i := 1; i < len(self.Sequences); i++ {
+		if self.Sequences[i] > ackArr[ackArrI].End + 1 {
+			ackArr = append(ackArr, westworld3.Ack{Start: self.Sequences[i], End: self.Sequences[i]})
+			ackArrI++
+		} else {
+			ackArr[ackArrI].End = self.Sequences[i]
+		}
+	}
+	return ackArr
 }
 
 /*
