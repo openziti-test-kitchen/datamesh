@@ -83,6 +83,7 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 }
 
 func (self *Datamesh) addLinkCb(l *link) {
+	self.Fwd.addDestination(l)
 	for _, handler := range self.Handlers.linkUpHandlers {
 		handler(l)
 	}

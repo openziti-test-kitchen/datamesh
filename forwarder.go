@@ -7,7 +7,7 @@ import (
 )
 
 type Forwarder struct {
-	table cmap.ConcurrentMap // [destinationId]Destination
+	table cmap.ConcurrentMap // [Address]Destination
 }
 
 func newForwarder() *Forwarder {
@@ -16,7 +16,11 @@ func newForwarder() *Forwarder {
 	}
 }
 
-func (fw *Forwarder) forward(srcId string, msg *channel.Message) error {
+func (fw *Forwarder) addDestination(d Destination) {
+	fw.table.Set(string(d.Address()), d)
+}
+
+func (fw *Forwarder) forward(srcAddr Address, msg *channel.Message) error {
 	switch msg.ContentType {
 	default:
 		return errors.Errorf("cannot forward content type [%d]", msg.ContentType)
