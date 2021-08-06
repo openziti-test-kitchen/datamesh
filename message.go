@@ -127,10 +127,10 @@ func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
 	} else {
 		return nil, errors.New("missing sequence from payload")
 	}
-	if sessionId, found := msg.Headers[PayloadCircuitIdHeaderKey]; found {
-		p.CircuitId = CircuitId(sessionId)
+	if circuitId, found := msg.Headers[PayloadCircuitIdHeaderKey]; found {
+		p.CircuitId = CircuitId(circuitId)
 	} else {
-		return nil, errors.New("missing sessionId from payload")
+		return nil, errors.New("missing circuitId from payload")
 	}
 	if flags, found := msg.GetUint32Header(PayloadFlagsHeaderKey); found {
 		p.Flags = flags
