@@ -150,7 +150,11 @@ func NewAcknowledgement(circuitId CircuitId, sequences []int32) *Acknowledgement
 }
 
 func (self *Acknowledgement) Marshal() *channel.Message {
-	return nil
+	ackArr := self.sequencesToAcks()
+	ackData := make([]byte, len(ackArr) * 8)
+	msg := channel.NewMessage(int32(AcknowledgementContentType), ackData)
+	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
+	return msg
 }
 
 func UnmarshalAcknowledgement(msg *channel.Message) (*Acknowledgement, error) {
@@ -177,6 +181,10 @@ func (self *Acknowledgement) sequencesToAcks() []westworld3.Ack {
 		}
 	}
 	return ackArr
+}
+
+func unmarshalAcks() ([]int32, error) {
+	return nil, nil
 }
 
 /*
