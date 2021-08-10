@@ -149,16 +149,29 @@ func NewAcknowledgement(circuitId CircuitId, sequences []int32) *Acknowledgement
 	return &Acknowledgement{CircuitId: circuitId, Sequences: sequences}
 }
 
-func (self *Acknowledgement) Marshal() *channel.Message {
+func (self *Acknowledgement) Marshal() (*channel.Message, error) {
 	ackArr := self.sequencesToAcks()
 	ackData := make([]byte, len(ackArr) * 8)
-	msg := channel.NewMessage(int32(AcknowledgementContentType), ackData)
+	n, err := westworld3.EncodeAcks(ackArr, ackData)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to encode acks")
+	}
+	msg := channel.NewMessage(int32(AcknowledgementContentType), ackData[:n])
 	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
-	return msg
+	return msg, nil
 }
 
 func UnmarshalAcknowledgement(msg *channel.Message) (*Acknowledgement, error) {
-	return nil, errors.New("not implemented")
+	ackArr, _, err := westworld3.DecodeAcks(msg.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode acks")
+	}
+	sequences := acksToSequences(ackArr)
+	circuitId, found := msg.GetStringHeader(CircuitIdHeaderKey)
+	if !found {
+		return nil, errors.New("acknowledgement missing circuit id")
+	}
+	return &Acknowledgement{CircuitId: CircuitId(circuitId), Sequences: sequences}, nil
 }
 
 func (self *Acknowledgement) sequencesToAcks() []westworld3.Ack {
@@ -183,8 +196,14 @@ func (self *Acknowledgement) sequencesToAcks() []westworld3.Ack {
 	return ackArr
 }
 
-func unmarshalAcks() ([]int32, error) {
-	return nil, nil
+func acksToSequences(acks []westworld3.Ack) []int32 {
+	var sequences []int32
+	for _, ar := range acks {
+		for i := ar.Start; i < ar.End; i++ {
+			sequences = append(sequences, i)
+		}
+	}
+	return sequences
 }
 
 /*
