@@ -3,9 +3,7 @@ package datamesh
 import (
 	"encoding/binary"
 	"github.com/openziti-incubator/datamesh/channel"
-	"github.com/openziti/dilithium/protocol/westworld3"
 	"github.com/pkg/errors"
-	"sort"
 )
 
 /*
@@ -15,22 +13,19 @@ import (
 type ContentType uint32
 
 const (
-	ControlContentType         ContentType = 10099
-	PayloadContentType         ContentType = 10100
-	AcknowledgementContentType ContentType = 10101
+	ControlContentType ContentType = 10099
+	DataContentType    ContentType = 10100
 )
 
 type HeaderKey uint32
 
 const (
-	MinHeaderKey             = 2000
-	CircuitIdHeaderKey       = 2001
-	ControlFlagsHeaderKey    = 2256
-	PingIdHeaderKey          = 2257
-	PingTimestampHeaderKey   = 2258
-	PayloadSequenceHeaderKey = 2300
-	PayloadFlagsHeaderKey    = 2302
-	MaxHeaderKey             = 2999
+	MinHeaderKey           = 2000
+	CircuitIdHeaderKey     = 2001
+	ControlFlagsHeaderKey  = 2256
+	PingIdHeaderKey        = 2257
+	PingTimestampHeaderKey = 2258
+	MaxHeaderKey           = 2999
 )
 
 type ControlFlag uint32
@@ -42,11 +37,6 @@ const (
 
 type PayloadFlag uint32
 
-const (
-	StartSessionPayloadFlag PayloadFlag = 1
-	EndSessionPayloadFlag   PayloadFlag = 2
-)
-
 /*
  * Structures
  */
@@ -56,17 +46,9 @@ type Control struct {
 	Headers map[int32][]byte
 }
 
-type Payload struct {
-	Sequence  int32
+type Data struct {
 	CircuitId CircuitId
-	Flags     uint32
-	Headers   map[int32][]byte
-	Data      []byte
-}
-
-type Acknowledgement struct {
-	CircuitId CircuitId
-	Sequences []int32
+	Payload   []byte
 }
 
 /*
@@ -104,106 +86,25 @@ func UnmarshalControl(msg *channel.Message) (*Control, error) {
 	return control, nil
 }
 
-func NewPayload(sequence int32, circuitId CircuitId) *Payload {
-	return &Payload{Sequence: sequence, CircuitId: circuitId}
+func NewData(circuitId CircuitId) *Data {
+	return &Data{CircuitId: circuitId}
 }
 
-func (self *Payload) Marshal() *channel.Message {
-	msg := channel.NewMessage(int32(PayloadContentType), self.Data)
-	for k, v := range self.Headers {
-		msg.Headers[k] = v
-	}
-	msg.PutUint32Header(PayloadSequenceHeaderKey, uint32(self.Sequence))
+func (self *Data) Marshal() *channel.Message {
+	msg := channel.NewMessage(int32(DataContentType), self.Payload)
 	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
-	if self.Flags > 0 {
-		msg.PutUint32Header(PayloadFlagsHeaderKey, self.Flags)
-	}
 	return msg
 }
 
-func UnmarshalPayload(msg *channel.Message) (*Payload, error) {
-	p := &Payload{Data: make([]byte, len(msg.Body))}
-	copy(p.Data, msg.Body)
-	if sequence, found := msg.GetUint32Header(PayloadSequenceHeaderKey); found {
-		p.Sequence = int32(sequence)
-	} else {
-		return nil, errors.New("missing sequence from payload")
-	}
+func UnmarshalData(msg *channel.Message) (*Data, error) {
+	data := &Data{Payload: make([]byte, len(msg.Body))}
+	copy(data.Payload, msg.Body)
 	if circuitId, found := msg.Headers[CircuitIdHeaderKey]; found {
-		p.CircuitId = CircuitId(circuitId)
+		data.CircuitId = CircuitId(circuitId)
 	} else {
 		return nil, errors.New("missing circuitId from payload")
 	}
-	if flags, found := msg.GetUint32Header(PayloadFlagsHeaderKey); found {
-		p.Flags = flags
-	}
-	for k, v := range msg.Headers {
-		if k < MinHeaderKey && k > MaxHeaderKey {
-			p.Headers[k] = v
-		}
-	}
-	return p, nil
-}
-
-func NewAcknowledgement(circuitId CircuitId, sequences []int32) *Acknowledgement {
-	return &Acknowledgement{CircuitId: circuitId, Sequences: sequences}
-}
-
-func (self *Acknowledgement) Marshal() (*channel.Message, error) {
-	ackArr := self.sequencesToAcks()
-	ackData := make([]byte, len(ackArr) * 8)
-	n, err := westworld3.EncodeAcks(ackArr, ackData)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to encode acks")
-	}
-	msg := channel.NewMessage(int32(AcknowledgementContentType), ackData[:n])
-	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
-	return msg, nil
-}
-
-func UnmarshalAcknowledgement(msg *channel.Message) (*Acknowledgement, error) {
-	ackArr, _, err := westworld3.DecodeAcks(msg.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to decode acks")
-	}
-	sequences := acksToSequences(ackArr)
-	circuitId, found := msg.GetStringHeader(CircuitIdHeaderKey)
-	if !found {
-		return nil, errors.New("acknowledgement missing circuit id")
-	}
-	return &Acknowledgement{CircuitId: CircuitId(circuitId), Sequences: sequences}, nil
-}
-
-func (self *Acknowledgement) sequencesToAcks() []westworld3.Ack {
-	if len(self.Sequences) < 1 {
-		return nil
-	}
-	if len(self.Sequences) == 1 {
-		return []westworld3.Ack{{Start: self.Sequences[0], End: self.Sequences[0]}}
-	}
-
-	sort.Slice(self.Sequences, func(i, j int) bool { return self.Sequences[i] < self.Sequences[j] })
-	ackArr := []westworld3.Ack{{Start: self.Sequences[0], End: self.Sequences[0]}}
-	ackArrI := 0
-	for i := 1; i < len(self.Sequences); i++ {
-		if self.Sequences[i] > ackArr[ackArrI].End + 1 {
-			ackArr = append(ackArr, westworld3.Ack{Start: self.Sequences[i], End: self.Sequences[i]})
-			ackArrI++
-		} else {
-			ackArr[ackArrI].End = self.Sequences[i]
-		}
-	}
-	return ackArr
-}
-
-func acksToSequences(acks []westworld3.Ack) []int32 {
-	var sequences []int32
-	for _, ar := range acks {
-		for i := ar.Start; i < ar.End; i++ {
-			sequences = append(sequences, i)
-		}
-	}
-	return sequences
+	return data, nil
 }
 
 /*

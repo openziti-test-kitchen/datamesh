@@ -23,12 +23,8 @@ func (self *nicImpl) Address() Address {
 	return self.address
 }
 
-func (self *nicImpl) SendPayload(p *Payload) error {
+func (self *nicImpl) SendData(data *Data) error {
 	return errors.Errorf("not implemented")
-}
-
-func (self *nicImpl) SendAcknowledgement(a *Acknowledgement) error {
-	return errors.Errorf("not implmented")
 }
 
 func (self *nicImpl) Close() error {

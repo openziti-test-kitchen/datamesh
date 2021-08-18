@@ -51,11 +51,7 @@ func (self *link) Address() Address {
 	return Address(self.id.Token)
 }
 
-func (self *link) SendPayload(p *Payload) error {
-	return errors.New("not implemented")
-}
-
-func (self *link) SendAcknowledgement(a *Acknowledgement) error {
+func (self *link) SendData(data *Data) error {
 	return errors.New("not implemented")
 }
 
@@ -91,8 +87,7 @@ func newLinkBindHandler(datamesh *Datamesh, link *link) *linkBindHandler {
 
 func (self *linkBindHandler) BindChannel(ch channel.Channel) error {
 	ch.AddReceiveHandler(&linkControlReceiveHandler{self.link})
-	ch.AddReceiveHandler(&linkPayloadReceiveHandler{self.datamesh, self.link})
-	ch.AddReceiveHandler(&linkAcknowledgementReceiveHandler{self.datamesh, self.link})
+	ch.AddReceiveHandler(&linkDataReceiveHandler{self.datamesh, self.link})
 	return nil
 }
 
@@ -141,35 +136,22 @@ func (self *linkControlReceiveHandler) HandleReceive(msg *channel.Message, ch ch
 	}
 }
 
-type linkPayloadReceiveHandler struct {
+type linkDataReceiveHandler struct {
 	datamesh *Datamesh
 	l        *link
 }
 
-func (_ *linkPayloadReceiveHandler) ContentType() int32 {
-	return int32(PayloadContentType)
+func (_ *linkDataReceiveHandler) ContentType() int32 {
+	return int32(DataContentType)
 }
 
-func (self *linkPayloadReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
+func (self *linkDataReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
-	if p, err := UnmarshalPayload(msg); err == nil {
-		if err := self.datamesh.Fwd.ForwardPayload(p.CircuitId, self.l.Address(), p); err != nil {
+	if p, err := UnmarshalData(msg); err == nil {
+		if err := self.datamesh.Fwd.Forward(p.CircuitId, self.l.Address(), p); err != nil {
 			log.Errorf("error forwarding (%v)", err)
 		}
 	} else {
 		log.Errorf("error unmarshalling (%v)", err)
 	}
-}
-
-type linkAcknowledgementReceiveHandler struct {
-	datamesh *Datamesh
-	l        *link
-}
-
-func (_ *linkAcknowledgementReceiveHandler) ContentType() int32 {
-	return int32(AcknowledgementContentType)
-}
-
-func (_ *linkAcknowledgementReceiveHandler) HandleReceive(m *channel.Message, _ channel.Channel) {
-	logrus.Infof("received [%d] bytes", len(m.Body))
 }
