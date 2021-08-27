@@ -5,10 +5,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Endpoint defines the primary "extensible" component in datamesh. An Endpoint sits inside of a NIC, which allows it to
+// communicate with another NIC, and its contained Endpoint elsewhere on the network.
+//
 type Endpoint interface {
-	Rx([]byte) error
+	Connect(txer EndpointTxer, rxer chan []byte)
 }
 
+// EndpointTxer defines the transmitter interface exposed to an Endpoint.
+//
 type EndpointTxer interface {
 	Tx(data []byte) error
 }
