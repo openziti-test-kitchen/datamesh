@@ -2,8 +2,12 @@ package datamesh
 
 import "github.com/pkg/errors"
 
-type NICTxer interface {
-	Tx(data []byte)
+type Endpoint interface {
+	Rx([]byte) error
+}
+
+type EndpointTxer interface {
+	Tx(data []byte) error
 }
 
 type NIC interface {
@@ -19,14 +23,18 @@ func newNIC(address Address, endpoint Endpoint) NIC {
 	return &nicImpl{address, endpoint}
 }
 
-func (self *nicImpl) Address() Address {
-	return self.address
+func (nic *nicImpl) Address() Address {
+	return nic.address
 }
 
-func (self *nicImpl) SendData(data *Data) error {
+func (nic *nicImpl) SendData(data *Data) error {
 	return errors.Errorf("not implemented")
 }
 
-func (self *nicImpl) Close() error {
+func (nic *nicImpl) Close() error {
+	return errors.Errorf("not implemented")
+}
+
+func (nic *nicImpl) Tx(data []byte) error {
 	return errors.Errorf("not implemented")
 }
