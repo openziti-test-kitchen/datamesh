@@ -1,6 +1,9 @@
 package datamesh
 
-import "github.com/pkg/errors"
+import (
+	"github.com/openziti/dilithium"
+	"github.com/pkg/errors"
+)
 
 type Endpoint interface {
 	Rx([]byte) error
@@ -17,10 +20,15 @@ type NIC interface {
 type nicImpl struct {
 	address  Address
 	endpoint Endpoint
+	txp      *dilithium.TxPortal
+	rxp      *dilithium.RxPortal
 }
 
 func newNIC(address Address, endpoint Endpoint) NIC {
-	return &nicImpl{address, endpoint}
+	return &nicImpl{
+		address:  address,
+		endpoint: endpoint,
+	}
 }
 
 func (nic *nicImpl) Address() Address {
