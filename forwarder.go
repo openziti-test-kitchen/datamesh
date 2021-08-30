@@ -18,19 +18,19 @@ func newForwarder() *Forwarder {
 	}
 }
 
-func (fw *Forwarder) addDestination(d Destination) {
+func (fw *Forwarder) AddDestination(d Destination) {
 	fw.lock.Lock()
 	fw.dests[d.Address()] = d
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) removeDestination(d Destination) {
+func (fw *Forwarder) RemoveDestination(d Destination) {
 	fw.lock.Lock()
 	delete(fw.dests, d.Address())
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) addRoute(circuitId Circuit, srcAddr, destAddr Address) {
+func (fw *Forwarder) AddRoute(circuitId Circuit, srcAddr, destAddr Address) {
 	fw.lock.Lock()
 	routeMap, found := fw.routes[circuitId]
 	if !found {
@@ -41,7 +41,7 @@ func (fw *Forwarder) addRoute(circuitId Circuit, srcAddr, destAddr Address) {
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) removeRoute(circuitId Circuit, srcAddr, destAddr Address) {
+func (fw *Forwarder) RemoveRoute(circuitId Circuit, srcAddr Address) {
 	fw.lock.Lock()
 	routeMap, found := fw.routes[circuitId]
 	if found {

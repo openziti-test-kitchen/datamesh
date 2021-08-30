@@ -2,6 +2,7 @@ package datamesh
 
 import (
 	"github.com/openziti/dilithium"
+	"github.com/openziti/dilithium/util"
 	"github.com/pkg/errors"
 )
 
@@ -28,9 +29,11 @@ type nicImpl struct {
 	endpoint Endpoint
 	dm       *Datamesh
 	da       *NICAdapter
+	seq      *util.Sequence
 	txa      dilithium.TxAlgorithm
 	txp      *dilithium.TxPortal
 	rxp      *dilithium.RxPortal
+	closer   *dilithium.Closer
 }
 
 func newNIC(dm *Datamesh, circuit Circuit, address Address, endpoint Endpoint) NIC {
@@ -39,13 +42,21 @@ func newNIC(dm *Datamesh, circuit Circuit, address Address, endpoint Endpoint) N
 		address:  address,
 		endpoint: endpoint,
 		dm:       dm,
+		seq:      util.NewSequence(0),
 	}
 	nic.da = NewNICAdapter(nic)
 	return nic
 }
 
-func (nic *nicImpl) SetTxAlgorithm(txa dilithium.TxAlgorithm) {
+func (nic *nicImpl) SetTxAlgorithm(txa dilithium.TxAlgorithm) error {
+	if nic.txa != nil {
+		return errors.New("algorithm already present")
+	}
 	nic.txa = txa
+	return nil
+}
+
+func (nic *nicImpl) Start() {
 }
 
 func (nic *nicImpl) Address() Address {
