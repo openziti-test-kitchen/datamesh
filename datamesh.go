@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-type CircuitId string
+type Circuit string
 
 type Datamesh struct {
 	cf        *Config

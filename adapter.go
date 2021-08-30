@@ -6,12 +6,12 @@ import (
 
 type DestinationAdapter struct {
 	dm      *Datamesh
-	circuit CircuitId
+	circuit Circuit
 	srcAddr Address
 	dstAddr Address
 }
 
-func NewDestinationAdapter(dm *Datamesh, circuit CircuitId, srcAddr, dstAddr Address) *DestinationAdapter {
+func NewDestinationAdapter(dm *Datamesh, circuit Circuit, srcAddr, dstAddr Address) *DestinationAdapter {
 	return &DestinationAdapter{dm, circuit, srcAddr, dstAddr}
 }
 

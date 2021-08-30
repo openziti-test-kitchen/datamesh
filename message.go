@@ -47,7 +47,7 @@ type Control struct {
 }
 
 type Data struct {
-	CircuitId CircuitId
+	CircuitId Circuit
 	Payload   []byte
 }
 
@@ -86,7 +86,7 @@ func UnmarshalControl(msg *channel.Message) (*Control, error) {
 	return control, nil
 }
 
-func NewData(circuitId CircuitId) *Data {
+func NewData(circuitId Circuit) *Data {
 	return &Data{CircuitId: circuitId}
 }
 
@@ -100,7 +100,7 @@ func UnmarshalData(msg *channel.Message) (*Data, error) {
 	data := &Data{Payload: make([]byte, len(msg.Body))}
 	copy(data.Payload, msg.Body)
 	if circuitId, found := msg.Headers[CircuitIdHeaderKey]; found {
-		data.CircuitId = CircuitId(circuitId)
+		data.CircuitId = Circuit(circuitId)
 	} else {
 		return nil, errors.New("missing circuitId from payload")
 	}

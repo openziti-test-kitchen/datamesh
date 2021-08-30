@@ -8,13 +8,13 @@ import (
 type Forwarder struct {
 	lock   sync.RWMutex
 	dests  map[Address]Destination
-	routes map[CircuitId]map[Address]Address
+	routes map[Circuit]map[Address]Address
 }
 
 func newForwarder() *Forwarder {
 	return &Forwarder{
 		dests:  make(map[Address]Destination),
-		routes: make(map[CircuitId]map[Address]Address),
+		routes: make(map[Circuit]map[Address]Address),
 	}
 }
 
@@ -30,7 +30,7 @@ func (fw *Forwarder) removeDestination(d Destination) {
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) addRoute(circuitId CircuitId, srcAddr, destAddr Address) {
+func (fw *Forwarder) addRoute(circuitId Circuit, srcAddr, destAddr Address) {
 	fw.lock.Lock()
 	routeMap, found := fw.routes[circuitId]
 	if !found {
@@ -41,7 +41,7 @@ func (fw *Forwarder) addRoute(circuitId CircuitId, srcAddr, destAddr Address) {
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) removeRoute(circuitId CircuitId, srcAddr, destAddr Address) {
+func (fw *Forwarder) removeRoute(circuitId Circuit, srcAddr, destAddr Address) {
 	fw.lock.Lock()
 	routeMap, found := fw.routes[circuitId]
 	if found {
@@ -55,7 +55,7 @@ func (fw *Forwarder) removeRoute(circuitId CircuitId, srcAddr, destAddr Address)
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) Forward(circuitId CircuitId, srcAddr Address, data *Data) error {
+func (fw *Forwarder) Forward(circuitId Circuit, srcAddr Address, data *Data) error {
 	fw.lock.RLock()
 	defer fw.lock.RUnlock()
 
@@ -69,7 +69,7 @@ func (fw *Forwarder) Forward(circuitId CircuitId, srcAddr Address, data *Data) e
 	}
 }
 
-func (fw *Forwarder) destination(circuitId CircuitId, srcAddr Address) Destination {
+func (fw *Forwarder) destination(circuitId Circuit, srcAddr Address) Destination {
 	routeMap, found := fw.routes[circuitId]
 	if found {
 		destAddr, found := routeMap[srcAddr]
