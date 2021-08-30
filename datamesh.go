@@ -1,6 +1,7 @@
 package datamesh
 
 import (
+	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
 	"github.com/openziti/foundation/util/sequence"
@@ -34,6 +35,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		Handlers:  &Handlers{},
 		sequence:  sequence.NewSequence(),
 	}
+	channel.SetUnderlayRegistrySequence(d.sequence)
 	d.overlay.addLinkCb = d.addLinkCb
 	for _, listenerCf := range cf.Listeners {
 		d.listeners[listenerCf.Id] = NewListener(listenerCf, &identity.TokenId{Token: listenerCf.Id})
