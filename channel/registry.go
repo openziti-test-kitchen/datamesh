@@ -34,3 +34,7 @@ func init() {
 		sequence: sequence.NewSequence(),
 	}
 }
+
+func SetUnderlayRegistrySequence(sequence *sequence.Sequence) {
+	globalRegistry.sequence = sequence
+}
