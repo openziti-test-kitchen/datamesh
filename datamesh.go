@@ -74,7 +74,11 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 	if err != nil {
 		return nil, err
 	}
-	nic := newNIC(Address(addr), endpoint)
+	circuit, err := self.sequence.NextHash()
+	if err != nil {
+		return nil, errors.Wrap(err, "sequence error")
+	}
+	nic := newNIC(self, Circuit(circuit), Address(addr), endpoint)
 	self.nics[addr] = nic
 	self.lock.Unlock()
 

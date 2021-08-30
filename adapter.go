@@ -4,25 +4,22 @@ import (
 	"io"
 )
 
-type DestinationAdapter struct {
-	dm      *Datamesh
-	circuit Circuit
-	srcAddr Address
-	dstAddr Address
+type NICAdapter struct {
+	nic NIC
 }
 
-func NewDestinationAdapter(dm *Datamesh, circuit Circuit, srcAddr, dstAddr Address) *DestinationAdapter {
-	return &DestinationAdapter{dm, circuit, srcAddr, dstAddr}
+func NewNICAdapter(nic NIC) *NICAdapter {
+	return &NICAdapter{nic}
 }
 
-func (ca *DestinationAdapter) Read(p []byte) (n int, err error) {
+func (na *NICAdapter) Read(p []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
-func (ca *DestinationAdapter) Write(p []byte) (n int, err error) {
+func (na *NICAdapter) Write(p []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
-func (ca *DestinationAdapter) Close() error {
+func (na *NICAdapter) Close() error {
 	return nil
 }

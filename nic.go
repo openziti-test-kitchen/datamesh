@@ -23,17 +23,29 @@ type NIC interface {
 }
 
 type nicImpl struct {
+	circuit  Circuit
 	address  Address
 	endpoint Endpoint
+	dm       *Datamesh
+	da       *NICAdapter
+	txa      dilithium.TxAlgorithm
 	txp      *dilithium.TxPortal
 	rxp      *dilithium.RxPortal
 }
 
-func newNIC(address Address, endpoint Endpoint) NIC {
-	return &nicImpl{
+func newNIC(dm *Datamesh, circuit Circuit, address Address, endpoint Endpoint) NIC {
+	nic := &nicImpl{
+		circuit:  circuit,
 		address:  address,
 		endpoint: endpoint,
+		dm:       dm,
 	}
+	nic.da = NewNICAdapter(nic)
+	return nic
+}
+
+func (nic *nicImpl) SetTxAlgorithm(txa dilithium.TxAlgorithm) {
+	nic.txa = txa
 }
 
 func (nic *nicImpl) Address() Address {
