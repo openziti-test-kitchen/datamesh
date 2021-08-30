@@ -1,26 +1,28 @@
 package datamesh
 
 import (
-	"github.com/openziti-incubator/datamesh/channel"
 	"io"
 )
 
-type ChannelAdapter struct {
-	ch channel.Channel
+type DestinationAdapter struct {
+	dm      *Datamesh
+	circuit CircuitId
+	srcAddr Address
+	dstAddr Address
 }
 
-func NewChannelAdapter(ch channel.Channel) *ChannelAdapter {
-	return &ChannelAdapter{ch}
+func NewDestinationAdapter(dm *Datamesh, circuit CircuitId, srcAddr, dstAddr Address) *DestinationAdapter {
+	return &DestinationAdapter{dm, circuit, srcAddr, dstAddr}
 }
 
-func (ca *ChannelAdapter) Read(p []byte) (n int, err error) {
+func (ca *DestinationAdapter) Read(p []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
-func (ca *ChannelAdapter) Write(p []byte) (n int, err error) {
+func (ca *DestinationAdapter) Write(p []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
-func (ca *ChannelAdapter) Close() error {
+func (ca *DestinationAdapter) Close() error {
 	return nil
 }
