@@ -27,6 +27,7 @@ func node(_ *cobra.Command, args []string) {
 	cfo = cfo.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.DialerConfig{}), func() interface{} { return datamesh.DialerConfigDefaults() })
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.ListenerConfig{}), func() interface{} { return datamesh.ListenerConfigDefaults() })
+	cfo = cfo.AddFlexibleSetter("westworld", datamesh.WestworldProfileFlexibleSetter)
 
 	cfg := &Config{}
 	if err := cf.BindYaml(cfg, args[0], cfo); err != nil {
@@ -34,6 +35,7 @@ func node(_ *cobra.Command, args []string) {
 		return
 	}
 	logrus.Info(cf.Dump(cfg, cfo))
+	logrus.Info(cf.Dump(cfg.Datamesh.Profile, cfo))
 
 	d := datamesh.NewDatamesh(cfg.Datamesh)
 	d.Handlers.AddLinkUpHandler(func(l datamesh.Link) {

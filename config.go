@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Listeners []*ListenerConfig
 	Dialers   []*DialerConfig
+	Profile   interface{}
 }
 
 type LinkConfig struct {

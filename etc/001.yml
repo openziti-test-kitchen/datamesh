@@ -10,5 +10,8 @@ datamesh:
 
   mtu:                  32000
 
+  profile:
+    type:               westworld
+
 peers:
   - tcp:0.0.0.0:6001
