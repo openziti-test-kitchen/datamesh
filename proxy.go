@@ -82,10 +82,15 @@ func (pxl *ProxyListener) txer() {
 
 type ProxyListenerFactory struct {
 	BindAddress transport.Address
+	CircuitId   Circuit
 }
 
 func (pxlf *ProxyListenerFactory) Create() (Endpoint, error) {
 	return NewProxyListener(pxlf.BindAddress), nil
+}
+
+func (pxlf *ProxyListenerFactory) Circuit() Circuit {
+	return pxlf.CircuitId
 }
 
 type ProxyTerminator struct {
@@ -155,12 +160,18 @@ func (pxt *ProxyTerminator) txer() {
 
 type ProxyTerminatorFactory struct {
 	DialAddress transport.Address
+	CircuitId   Circuit
 }
 
 func (pxtf *ProxyTerminatorFactory) Create() (Endpoint, error) {
 	return NewProxyTerminator(pxtf.DialAddress), nil
 }
 
+func (pxtf *ProxyTerminatorFactory) Circuit() Circuit {
+	return pxtf.CircuitId
+}
+
 type ProxyFactory interface {
 	Create() (Endpoint, error)
+	Circuit() Circuit
 }

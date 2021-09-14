@@ -19,3 +19,4 @@ peers:
 endpoint:
   type:                 proxy_listener
   bind_address:         tcp:0.0.0.0:1122
+  circuit_id:           ssh

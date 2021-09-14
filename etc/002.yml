@@ -19,3 +19,4 @@ datamesh:
 endpoint:
   type:                 proxy_terminator
   dial_address:         tcp:127.0.0.1:22
+  circuit_id:           ssh

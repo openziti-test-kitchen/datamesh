@@ -30,6 +30,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		cf:        cf,
 		listeners: make(map[string]*Listener),
 		dialers:   make(map[string]*Dialer),
+		nics:      make(map[string]NIC),
 		overlay:   newGraph(),
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
@@ -82,7 +83,6 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 	}
 	nic := newNIC(self, Circuit(circuit), Address(addr), endpoint)
 	self.nics[addr] = nic
-	self.lock.Unlock()
 
 	self.Fwd.AddDestination(nic)
 

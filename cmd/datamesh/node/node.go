@@ -24,6 +24,7 @@ var nodeCmd = &cobra.Command{
 
 func node(_ *cobra.Command, args []string) {
 	cfo := cf.DefaultOptions()
+	cfo = cfo.AddSetter(reflect.TypeOf((*datamesh.Circuit)(nil)).Elem(), datamesh.CircuitSetter)
 	cfo = cfo.AddSetter(reflect.TypeOf((*transport.Address)(nil)).Elem(), datamesh.TransportAddressSetter)
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.DialerConfig{}), func() interface{} { return datamesh.DialerConfigDefaults() })
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.ListenerConfig{}), func() interface{} { return datamesh.ListenerConfigDefaults() })
@@ -54,7 +55,11 @@ func node(_ *cobra.Command, args []string) {
 		if err != nil {
 			logrus.Fatalf("error inserting nic (%v)", err)
 		}
-		// Add Route
+		logrus.Info("inserted nic")
+		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), nic.Address(), l.Address())
+		logrus.Info("added route 1")
+		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), l.Address(), nic.Address())
+		logrus.Info("added route 2")
 	})
 	d.Start()
 

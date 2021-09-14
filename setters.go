@@ -24,6 +24,18 @@ func TransportAddressSetter(v interface{}, f reflect.Value) error {
 	return errors.Errorf("got '%s', expected '%s'", reflect.TypeOf(v), f.Type())
 }
 
+func CircuitSetter(v interface{}, f reflect.Value) error {
+	if vt, ok := v.(string); ok {
+		if f.Kind() == reflect.Ptr {
+			f.Elem().SetString(vt)
+		} else {
+			f.SetString(vt)
+		}
+		return nil
+	}
+	return errors.Errorf("got [%s], expected [%s]", reflect.TypeOf(v), f.Type())
+}
+
 func WestworldProfileFlexibleSetter(v interface{}, opt *cf.Options) (interface{}, error) {
 	wp := dilithium.NewBaselineWestworldProfile()
 	if err := cf.Bind(wp, v.(map[string]interface{}), opt); err != nil {
