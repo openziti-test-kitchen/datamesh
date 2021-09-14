@@ -3,8 +3,10 @@ package datamesh
 import (
 	"github.com/openziti/dilithium"
 	"github.com/openziti/foundation/transport"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
+	"time"
 )
 
 type ProxyListener struct {
@@ -20,7 +22,17 @@ func NewProxyListener(bindAddress transport.Address) *ProxyListener {
 }
 
 func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
-	// listen for 1 connection
+	in := make(chan transport.Connection)
+	clsr, err := pxl.bindAddress.Listen("ProxyListener", nil, in, nil)
+	if err != nil {
+		return errors.Wrap(err, "error listening")
+	}
+	select {
+	case conn := <-in:
+		pxl.conn = conn
+		_ = clsr.Close()
+	}
+	logrus.Infof("accepted connection [%v]", pxl.conn.Detail())
 
 	pxl.txq = txq
 	pxl.rxq = rxq
@@ -81,7 +93,11 @@ func NewProxyTerminator(dialAddress transport.Address) *ProxyTerminator {
 }
 
 func (pxt *ProxyTerminator) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
-	// dial service
+	conn, err := pxt.dialAddress.Dial("ProxyTerminator", nil, 5*time.Second, nil)
+	if err != nil {
+		return errors.Wrap(err, "error dialing")
+	}
+	pxt.conn = conn
 
 	pxt.txq = txq
 	pxt.rxq = rxq
