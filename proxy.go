@@ -80,6 +80,14 @@ func (pxl *ProxyListener) txer() {
 	}
 }
 
+type ProxyListenerFactory struct {
+	BindAddress transport.Address
+}
+
+func (pxlf *ProxyListenerFactory) Create() (Endpoint, error) {
+	return NewProxyListener(pxlf.BindAddress), nil
+}
+
 type ProxyTerminator struct {
 	dialAddress transport.Address
 	conn        transport.Connection
@@ -143,4 +151,16 @@ func (pxt *ProxyTerminator) txer() {
 			logrus.Errorf("read error (%v)", err)
 		}
 	}
+}
+
+type ProxyTerminatorFactory struct {
+	DialAddress transport.Address
+}
+
+func (pxtf *ProxyTerminatorFactory) Create() (Endpoint, error) {
+	return NewProxyTerminator(pxtf.DialAddress), nil
+}
+
+type ProxyFactory interface {
+	Create() (Endpoint, error)
 }

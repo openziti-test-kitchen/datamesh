@@ -28,6 +28,8 @@ func node(_ *cobra.Command, args []string) {
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.DialerConfig{}), func() interface{} { return datamesh.DialerConfigDefaults() })
 	cfo = cfo.AddInstantiator(reflect.TypeOf(datamesh.ListenerConfig{}), func() interface{} { return datamesh.ListenerConfigDefaults() })
 	cfo = cfo.AddFlexibleSetter("westworld", datamesh.WestworldProfileFlexibleSetter)
+	cfo = cfo.AddFlexibleSetter("proxy_listener", datamesh.ProxyListenerFactorySetter)
+	cfo = cfo.AddFlexibleSetter("proxy_terminator", datamesh.ProxyTerminatorFactorySetter)
 
 	cfg := &Config{}
 	if err := cf.BindYaml(cfg, args[0], cfo); err != nil {

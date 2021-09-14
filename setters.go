@@ -24,10 +24,26 @@ func TransportAddressSetter(v interface{}, f reflect.Value) error {
 	return errors.Errorf("got '%s', expected '%s'", reflect.TypeOf(v), f.Type())
 }
 
-func WestworldProfileFlexibleSetter(v interface{}) (interface{}, error) {
+func WestworldProfileFlexibleSetter(v interface{}, opt *cf.Options) (interface{}, error) {
 	wp := dilithium.NewBaselineWestworldProfile()
-	if err := cf.Bind(wp, v.(map[string]interface{}), cf.DefaultOptions()); err != nil {
+	if err := cf.Bind(wp, v.(map[string]interface{}), opt); err != nil {
 		return nil, err
 	}
 	return wp, nil
+}
+
+func ProxyListenerFactorySetter(v interface{}, opt *cf.Options) (interface{}, error) {
+	pxlf := &ProxyListenerFactory{}
+	if err := cf.Bind(pxlf, v.(map[string]interface{}), opt); err != nil {
+		return nil, err
+	}
+	return pxlf, nil
+}
+
+func ProxyTerminatorFactorySetter(v interface{}, opt *cf.Options) (interface{}, error) {
+	pxtf := &ProxyTerminatorFactory{}
+	if err := cf.Bind(pxtf, v.(map[string]interface{}), opt); err != nil {
+		return nil, err
+	}
+	return pxtf, nil
 }
