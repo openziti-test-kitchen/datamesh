@@ -11,12 +11,10 @@ datamesh:
   profile:
     type:               westworld
     start_size:         1024000
-    txpf:
-      max_segment_size:	2048
 
   mtu:                  32000
 
 endpoint:
   type:                 proxy_terminator
-  dial_address:         tcp:127.0.0.1:22
+  dial_address:         tcp:192.168.9.97:22
   circuit_id:           ssh

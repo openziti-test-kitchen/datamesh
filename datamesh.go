@@ -2,6 +2,7 @@ package datamesh
 
 import (
 	"github.com/openziti-incubator/datamesh/channel"
+	"github.com/openziti/dilithium"
 	"github.com/openziti/foundation/identity/identity"
 	"github.com/openziti/foundation/transport"
 	"github.com/openziti/foundation/util/sequence"
@@ -82,6 +83,16 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 		return nil, errors.Wrap(err, "sequence error")
 	}
 	nic := newNIC(self, Circuit(circuit), Address(addr), endpoint)
+	txAlg, err := self.cf.Profile.(dilithium.TxAlgorithmProfile).Create()
+	if err != nil {
+		return nil, err
+	}
+	if err := nic.(*nicImpl).SetTxAlgorithm(txAlg); err != nil {
+		return nil, err
+	}
+	if err := nic.(*nicImpl).Start(); err != nil {
+		return nil, err
+	}
 	self.nics[addr] = nic
 
 	self.Fwd.AddDestination(nic)

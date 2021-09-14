@@ -27,6 +27,7 @@ func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) 
 	if err != nil {
 		return errors.Wrap(err, "error listening")
 	}
+	logrus.Infof("listening [%v]", pxl.bindAddress)
 	select {
 	case conn := <-in:
 		pxl.conn = conn
@@ -110,6 +111,7 @@ func (pxt *ProxyTerminator) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer
 	if err != nil {
 		return errors.Wrap(err, "error dialing")
 	}
+	logrus.Infof("connection dialed [%v]", pxt.dialAddress)
 	pxt.conn = conn
 
 	pxt.txq = txq
