@@ -15,3 +15,7 @@ datamesh:
 
 peers:
   - tcp:0.0.0.0:6001
+
+endpoint:
+  type:                 proxy_listener
+  bind_address:         tcp:0.0.0.0:1122

@@ -38,6 +38,7 @@ func node(_ *cobra.Command, args []string) {
 	}
 	logrus.Info(cf.Dump(cfg, cfo))
 	logrus.Info(cf.Dump(cfg.Datamesh.Profile, cfo))
+	logrus.Info(cf.Dump(cfg.Endpoint, cfo))
 
 	d := datamesh.NewDatamesh(cfg.Datamesh)
 	d.Handlers.AddLinkUpHandler(func(l datamesh.Link) {
