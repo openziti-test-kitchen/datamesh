@@ -60,16 +60,21 @@ func (nic *nicImpl) SetTxAlgorithm(txa dilithium.TxAlgorithm) error {
 	return nil
 }
 
-func (nic *nicImpl) Start() {
+func (nic *nicImpl) Start() error {
 	if nic.closer == nil && nic.txp == nil && nic.rxp == nil {
 		nic.closer = dilithium.NewCloser(nic.seq, nil)
 		nic.txp = dilithium.NewTxPortal(nic.da, nic.txa, nic.closer)
 		nic.rxp = dilithium.NewRxPortal(nic.da, nic.txp, nic.seq, nic.closer)
 		nic.txp.Start()
 		go nic.rxer()
+		if err := nic.endpoint.Connect(nic, nic.rxq); err != nil {
+			return errors.Wrap(err, "unable to start nic")
+		}
 		logrus.Info("started")
+		return nil
+
 	} else {
-		logrus.Error("already started")
+		return errors.New("already started")
 	}
 }
 
