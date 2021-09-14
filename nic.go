@@ -11,7 +11,7 @@ import (
 // communicate with another NIC, and its contained Endpoint elsewhere on the network.
 //
 type Endpoint interface {
-	Connect(txer EndpointTxer, rxer chan *dilithium.Buffer)
+	Connect(txer EndpointTxer, rxer chan *dilithium.Buffer) error
 }
 
 // EndpointTxer defines the transmitter interface exposed to an Endpoint.

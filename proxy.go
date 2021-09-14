@@ -7,22 +7,30 @@ import (
 
 type ProxyListener struct {
 	bindAddress transport.Address
-	txer        EndpointTxer
-	rxer        chan *dilithium.Buffer
+	txer EndpointTxer
+	rxq  chan *dilithium.Buffer
 }
 
-func (pxl *ProxyListener) Connect(txer EndpointTxer, rxer chan *dilithium.Buffer) {
+func NewProxyListener(bindAddress transport.Address) *ProxyListener {
+	return &ProxyListener{bindAddress: bindAddress}
+}
+
+func (pxl *ProxyListener) Connect(txer EndpointTxer, rxq chan *dilithium.Buffer) error {
 	pxl.txer = txer
-	pxl.rxer = rxer
+	pxl.rxq = rxq
 }
 
 type ProxyTerminator struct {
 	dialAddress transport.Address
-	txer        EndpointTxer
-	rxer        chan *dilithium.Buffer
+	txer EndpointTxer
+	rxq  chan *dilithium.Buffer
 }
 
-func (pxt *ProxyTerminator) Connect(txer EndpointTxer, rxer chan *dilithium.Buffer) {
+func NewProxyTerminator(dialAddress transport.Address) *ProxyTerminator {
+	return &ProxyTerminator{dialAddress: dialAddress}
+}
+
+func (pxt *ProxyTerminator) Connect(txer EndpointTxer, rxq chan *dilithium.Buffer) error {
 	pxt.txer = txer
-	pxt.rxer = rxer
+	pxt.rxq = rxq
 }
