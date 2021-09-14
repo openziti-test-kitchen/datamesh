@@ -8,4 +8,5 @@ import (
 type Config struct {
 	Datamesh *datamesh.Config `cf:"+required"`
 	Peers    []transport.Address
+	Endpoint interface{}
 }
