@@ -19,7 +19,7 @@ type LinkConfig struct {
 
 func LinkConfigDefaults() *LinkConfig {
 	return &LinkConfig{
-		PingPeriod:      time.Duration(2) * time.Second,
+		PingPeriod:      time.Duration(15) * time.Second,
 		PingQueueLength: 128,
 		MTU:             64 * 1024,
 	}

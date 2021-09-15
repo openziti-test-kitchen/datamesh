@@ -148,7 +148,7 @@ func (_ *linkDataReceiveHandler) ContentType() int32 {
 func (self *linkDataReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
 	if p, err := UnmarshalData(msg); err == nil {
-		if err := self.datamesh.Fwd.Forward(p.CircuitId, self.l.Address(), p); err != nil {
+		if err := self.datamesh.Fwd.Forward(p.CircuitId, self.l.Address(), p.Payload); err != nil {
 			log.Errorf("error forwarding (%v)", err)
 		}
 	} else {
