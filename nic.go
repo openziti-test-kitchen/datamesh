@@ -17,7 +17,7 @@ type Endpoint interface {
 // EndpointTxer defines the transmitter interface exposed to an Endpoint.
 //
 type EndpointTxer interface {
-	Tx(data []byte) error
+	ToNetwork(data []byte) error
 }
 
 type NIC interface {
@@ -82,7 +82,7 @@ func (nic *nicImpl) Address() Address {
 	return nic.address
 }
 
-func (nic *nicImpl) FromNetwork(data *Data) error {
+func (nic *nicImpl) FromNetwork(data []byte) error {
 	return errors.Errorf("not implemented")
 }
 
@@ -90,7 +90,7 @@ func (nic *nicImpl) Close() error {
 	return errors.Errorf("not implemented")
 }
 
-func (nic *nicImpl) Tx(data []byte) error {
+func (nic *nicImpl) ToNetwork(data []byte) error {
 	return errors.Errorf("not implemented")
 }
 

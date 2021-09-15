@@ -51,7 +51,7 @@ func (self *link) Address() Address {
 	return Address(self.id.Token)
 }
 
-func (self *link) FromNetwork(data *Data) error {
+func (self *link) FromNetwork(data []byte) error {
 	return errors.New("not implemented")
 }
 

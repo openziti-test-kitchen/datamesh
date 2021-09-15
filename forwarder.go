@@ -60,7 +60,7 @@ func (fw *Forwarder) Forward(circuitId Circuit, srcAddr Address, data *Data) err
 	defer fw.lock.RUnlock()
 
 	if destination := fw.destination(circuitId, srcAddr); destination != nil {
-		if err := destination.FromNetwork(data); err != nil {
+		if err := destination.FromNetwork(data.Payload); err != nil {
 			return errors.Wrapf(err, "unable to forward [circuit/%s][src/%s]", circuitId, srcAddr)
 		}
 		return nil

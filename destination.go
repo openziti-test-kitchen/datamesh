@@ -4,6 +4,6 @@ type Address string
 
 type Destination interface {
 	Address() Address
-	FromNetwork(data *Data) error
+	FromNetwork(data []byte) error
 	Close() error
 }
