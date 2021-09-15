@@ -70,7 +70,7 @@ func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, err
 	}
 }
 
-func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
+func (self *Datamesh) InsertNIC(circuitId Circuit, endpoint Endpoint) (NIC, error) {
 	self.lock.Lock()
 	defer self.lock.Unlock()
 
@@ -78,11 +78,7 @@ func (self *Datamesh) InsertNIC(endpoint Endpoint) (NIC, error) {
 	if err != nil {
 		return nil, err
 	}
-	circuit, err := self.sequence.NextHash()
-	if err != nil {
-		return nil, errors.Wrap(err, "sequence error")
-	}
-	nic := newNIC(self, Circuit(circuit), Address(addr), endpoint)
+	nic := newNIC(self, circuitId, Address(addr), endpoint)
 	txAlg, err := self.cf.Profile.(dilithium.TxAlgorithmProfile).Create()
 	if err != nil {
 		return nil, err

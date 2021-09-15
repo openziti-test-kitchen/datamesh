@@ -51,15 +51,12 @@ func node(_ *cobra.Command, args []string) {
 		if err != nil {
 			logrus.Fatalf("failure to create endpoint (%v)", err)
 		}
-		nic, err := d.InsertNIC(ep)
+		nic, err := d.InsertNIC(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), ep)
 		if err != nil {
 			logrus.Fatalf("error inserting nic (%v)", err)
 		}
-		logrus.Info("inserted nic")
 		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), nic.Address(), l.Address())
-		logrus.Info("added route 1")
 		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), l.Address(), nic.Address())
-		logrus.Info("added route 2")
 	})
 	d.Start()
 
