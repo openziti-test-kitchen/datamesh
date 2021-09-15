@@ -28,7 +28,7 @@ func (self *Listener) Listen(datamesh *Datamesh, incoming chan<- *link) {
 	pfxlog.ContextLogger(self.id.Token).Infof("started")
 
 	for {
-		l := newLink(self.cfg.LinkConfig, InboundLink)
+		l := newLink(self.cfg.LinkConfig, InboundLink, self.datamesh)
 
 		options := channel.DefaultOptions()
 		options.BindHandlers = []channel.BindHandler{newLinkBindHandler(self.datamesh, l)}

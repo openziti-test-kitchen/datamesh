@@ -31,13 +31,15 @@ type link struct {
 	ch            channel.Channel
 	direction     LinkDirection
 	pingResponses chan *channel.Message
+	dm            *Datamesh
 }
 
-func newLink(cfg *LinkConfig, direction LinkDirection) *link {
+func newLink(cfg *LinkConfig, direction LinkDirection, dm *Datamesh) *link {
 	l := &link{
 		cfg:           cfg,
 		direction:     direction,
 		pingResponses: make(chan *channel.Message, cfg.PingQueueLength),
+		dm:            dm,
 	}
 	return l
 }
@@ -51,8 +53,8 @@ func (self *link) Address() Address {
 	return Address(self.id.Token)
 }
 
-func (self *link) FromNetwork(data []byte) error {
-	return errors.New("not implemented")
+func (self *link) FromNetwork(data *Data) error {
+	return self.dm.Fwd.Forward(self.addr, data)
 }
 
 func (self *link) Close() error {
@@ -147,8 +149,8 @@ func (_ *linkDataReceiveHandler) ContentType() int32 {
 
 func (self *linkDataReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
-	if p, err := UnmarshalData(msg); err == nil {
-		if err := self.datamesh.Fwd.Forward(p.CircuitId, self.l.Address(), p.Payload); err != nil {
+	if data, err := UnmarshalData(msg); err == nil {
+		if err := self.datamesh.Fwd.Forward(self.l.Address(), data); err != nil {
 			log.Errorf("error forwarding (%v)", err)
 		}
 	} else {

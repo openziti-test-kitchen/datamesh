@@ -17,7 +17,7 @@ func (na *NICAdapter) Read(p []byte) (n int, err error) {
 }
 
 func (na *NICAdapter) Write(p []byte) (n int, err error) {
-	if err := na.nic.(*nicImpl).ToNetwork(p); err != nil {
+	if err := na.nic.(*nicImpl).Tx(p); err != nil {
 		return 0, err
 	}
 	return len(p), nil

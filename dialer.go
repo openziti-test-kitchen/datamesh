@@ -20,7 +20,7 @@ func NewDialer(cfg *DialerConfig, id *identity.TokenId) *Dialer {
 func (self *Dialer) Dial(datamesh *Datamesh, endpoint transport.Address) (*link, error) {
 	pfxlog.ContextLogger(endpoint.String()).Infof("dialing")
 
-	l := newLink(self.cfg.LinkConfig, OutboundLink)
+	l := newLink(self.cfg.LinkConfig, OutboundLink, datamesh)
 
 	options := channel.DefaultOptions()
 	options.BindHandlers = []channel.BindHandler{newLinkBindHandler(datamesh, l)}

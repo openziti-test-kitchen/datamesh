@@ -68,7 +68,7 @@ func (pxl *ProxyListener) txer() {
 
 	for {
 		if n, err := pxl.conn.Reader().Read(pxl.readBuf); err == nil {
-			if err := pxl.txq.ToNetwork(pxl.readBuf[:n]); err != nil {
+			if err := pxl.txq.Tx(pxl.readBuf[:n]); err != nil {
 				logrus.Errorf("forward error (%v)", err)
 			}
 		} else if err == io.EOF {
@@ -147,7 +147,7 @@ func (pxt *ProxyTerminator) txer() {
 
 	for {
 		if n, err := pxt.conn.Reader().Read(pxt.readBuf); err == nil {
-			if err := pxt.txq.ToNetwork(pxt.readBuf[:n]); err != nil {
+			if err := pxt.txq.Tx(pxt.readBuf[:n]); err != nil {
 				logrus.Errorf("forward error (%v)", err)
 				return
 			}
