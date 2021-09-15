@@ -35,6 +35,7 @@ type nicImpl struct {
 	txp      *dilithium.TxPortal
 	rxp      *dilithium.RxPortal
 	rxq      chan *dilithium.Buffer
+	netq     chan *dilithium.Buffer
 	closer   *dilithium.Closer
 	pool     *dilithium.Pool
 }
@@ -46,6 +47,8 @@ func newNIC(dm *Datamesh, circuit Circuit, address Address, endpoint Endpoint) N
 		endpoint: endpoint,
 		dm:       dm,
 		seq:      util.NewSequence(0),
+		rxq:      make(chan *dilithium.Buffer, 16),
+		netq:     make(chan *dilithium.Buffer, 16),
 		pool:     dilithium.NewPool("nic", 128*1024),
 	}
 	nic.da = NewNICAdapter(nic)
@@ -83,7 +86,14 @@ func (nic *nicImpl) Address() Address {
 }
 
 func (nic *nicImpl) FromNetwork(data []byte) error {
-	return errors.Errorf("not implemented")
+	buf := nic.pool.Get()
+	n := copy(buf.Data, data)
+	buf.Used = uint32(n)
+	select {
+	case nic.netq <- buf:
+	default:
+	}
+	return nil
 }
 
 func (nic *nicImpl) Close() error {
@@ -91,7 +101,7 @@ func (nic *nicImpl) Close() error {
 }
 
 func (nic *nicImpl) ToNetwork(data []byte) error {
-	return errors.Errorf("not implemented")
+	return nic.dm.Fwd.Forward(nic.circuit, nic.address, data)
 }
 
 func (nic *nicImpl) rxer() {

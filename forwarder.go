@@ -55,12 +55,12 @@ func (fw *Forwarder) RemoveRoute(circuitId Circuit, srcAddr Address) {
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) Forward(circuitId Circuit, srcAddr Address, data *Data) error {
+func (fw *Forwarder) Forward(circuitId Circuit, srcAddr Address, data []byte) error {
 	fw.lock.RLock()
 	defer fw.lock.RUnlock()
 
 	if destination := fw.destination(circuitId, srcAddr); destination != nil {
-		if err := destination.FromNetwork(data.Payload); err != nil {
+		if err := destination.FromNetwork(data); err != nil {
 			return errors.Wrapf(err, "unable to forward [circuit/%s][src/%s]", circuitId, srcAddr)
 		}
 		return nil

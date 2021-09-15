@@ -13,19 +13,14 @@ func NewNICAdapter(nic NIC) *NICAdapter {
 }
 
 func (na *NICAdapter) Read(p []byte) (n int, err error) {
-	select {
-	case buf, ok := <-na.nic.(*nicImpl).rxq:
-		if ok {
-			no := copy(p, buf.Data[:buf.Used])
-			return no, nil
-		}
-	default:
-	}
 	return 0, io.EOF
 }
 
 func (na *NICAdapter) Write(p []byte) (n int, err error) {
-	return 0, io.EOF
+	if err := na.nic.(*nicImpl).ToNetwork(p); err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 func (na *NICAdapter) Close() error {
