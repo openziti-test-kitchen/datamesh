@@ -82,7 +82,7 @@ func (nic *nicImpl) Address() Address {
 	return nic.address
 }
 
-func (nic *nicImpl) SendData(data *Data) error {
+func (nic *nicImpl) FromNetwork(data *Data) error {
 	return errors.Errorf("not implemented")
 }
 
