@@ -149,6 +149,7 @@ func (pxt *ProxyTerminator) txer() {
 		if n, err := pxt.conn.Reader().Read(pxt.readBuf); err == nil {
 			if err := pxt.txq.Tx(pxt.readBuf[:n]); err != nil {
 				logrus.Errorf("forward error (%v)", err)
+				return
 			}
 		} else if err == io.EOF {
 			// close handling
