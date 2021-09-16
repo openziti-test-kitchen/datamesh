@@ -150,6 +150,7 @@ func (pxt *ProxyTerminator) txer() {
 				logrus.Errorf("forward error (%v)", err)
 				return
 			}
+			logrus.Infof("tx (%v bytes)", n)
 		} else if err == io.EOF {
 			// close handling
 			logrus.Warn("EOF")

@@ -101,6 +101,7 @@ func (nic *nicImpl) Close() error {
 }
 
 func (nic *nicImpl) Tx(data []byte) error {
+	logrus.Infof("tx (%v)", len(data))
 	n, err := nic.txp.Tx(data, nic.seq)
 	if err != nil {
 		return errors.Wrap(err, "to network")
