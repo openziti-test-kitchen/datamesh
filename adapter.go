@@ -1,8 +1,6 @@
 package datamesh
 
-import (
-	"io"
-)
+import "io"
 
 type NICAdapter struct {
 	nic NIC
@@ -13,6 +11,13 @@ func NewNICAdapter(nic NIC) *NICAdapter {
 }
 
 func (na *NICAdapter) Read(p []byte) (n int, err error) {
+	select {
+	case buf, ok := <-na.nic.(*nicImpl).netq:
+		if ok {
+			n := copy(p, buf.Data[:buf.Used])
+			return n, nil
+		}
+	}
 	return 0, io.EOF
 }
 
