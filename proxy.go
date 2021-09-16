@@ -18,7 +18,7 @@ type ProxyListener struct {
 }
 
 func NewProxyListener(bindAddress transport.Address) *ProxyListener {
-	return &ProxyListener{bindAddress: bindAddress}
+	return &ProxyListener{bindAddress: bindAddress, readBuf: make([]byte, 128 * 1024)}
 }
 
 func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
@@ -103,7 +103,7 @@ type ProxyTerminator struct {
 }
 
 func NewProxyTerminator(dialAddress transport.Address) *ProxyTerminator {
-	return &ProxyTerminator{dialAddress: dialAddress}
+	return &ProxyTerminator{dialAddress: dialAddress, readBuf: make([]byte, 128 * 1024)}
 }
 
 func (pxt *ProxyTerminator) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {

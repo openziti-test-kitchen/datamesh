@@ -1,6 +1,9 @@
 package datamesh
 
-import "io"
+import (
+	"github.com/sirupsen/logrus"
+	"io"
+)
 
 type NICAdapter struct {
 	nic NIC
@@ -15,6 +18,7 @@ func (na *NICAdapter) Read(p []byte) (n int, err error) {
 	case buf, ok := <-na.nic.(*nicImpl).netq:
 		if ok {
 			n := copy(p, buf.Data[:buf.Used])
+			logrus.Infof("read (%v)", n)
 			return n, nil
 		}
 	}
@@ -25,7 +29,9 @@ func (na *NICAdapter) Write(p []byte) (n int, err error) {
 	if err := na.nic.(*nicImpl).Tx(p); err != nil {
 		return 0, err
 	}
-	return len(p), nil
+	n = len(p)
+	logrus.Infof("wrote (%v)", n)
+	return n	, nil
 }
 
 func (na *NICAdapter) Close() error {
