@@ -23,7 +23,7 @@ func NewProxyListener(bindAddress transport.Address) *ProxyListener {
 
 func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
 	in := make(chan transport.Connection)
-	clsr, err := pxl.bindAddress.Listen("ProxyListener", nil, in, nil)
+	_, err := pxl.bindAddress.Listen("ProxyListener", nil, in, nil)
 	if err != nil {
 		return errors.Wrap(err, "error listening")
 	}
@@ -31,7 +31,6 @@ func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) 
 	select {
 	case conn := <-in:
 		pxl.conn = conn
-		_ = clsr.Close()
 	}
 	logrus.Infof("accepted connection [%v]", pxl.conn.Detail())
 
