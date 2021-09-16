@@ -23,6 +23,7 @@ type Datamesh struct {
 	Fwd       *Forwarder
 	Handlers  *Handlers
 	sequence  *sequence.Sequence
+	pool      *dilithium.Pool
 	lock      sync.Mutex
 }
 
@@ -36,6 +37,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
 		sequence:  sequence.NewSequence(),
+		pool:      dilithium.NewPool("link", 128*1024),
 	}
 	channel.SetUnderlayRegistrySequence(d.sequence)
 	d.overlay.addLinkCb = d.addLinkCb
@@ -64,6 +66,9 @@ func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, err
 			return nil, errors.Wrapf(err, "error dialing link at [%s]", endpoint)
 		}
 		self.overlay.addLink(l)
+		for _, handler := range self.Handlers.linkUpHandlers {
+			handler(l)
+		}
 		return l, nil
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
@@ -98,7 +103,4 @@ func (self *Datamesh) InsertNIC(circuitId Circuit, endpoint Endpoint) (NIC, erro
 
 func (self *Datamesh) addLinkCb(l *link) {
 	self.Fwd.AddDestination(l)
-	for _, handler := range self.Handlers.linkUpHandlers {
-		handler(l)
-	}
 }

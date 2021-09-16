@@ -47,6 +47,8 @@ func node(_ *cobra.Command, args []string) {
 
 	d := datamesh.NewDatamesh(cfg.Datamesh)
 	d.Handlers.AddLinkUpHandler(func(l datamesh.Link) {
+		logrus.Info("start")
+
 		ep, err := cfg.Endpoint.(datamesh.ProxyFactory).Create()
 		if err != nil {
 			logrus.Fatalf("failure to create endpoint (%v)", err)
@@ -55,8 +57,11 @@ func node(_ *cobra.Command, args []string) {
 		if err != nil {
 			logrus.Fatalf("error inserting nic (%v)", err)
 		}
+		logrus.Infof("nic (%v)", nic.Address())
 		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), nic.Address(), l.Address())
 		d.Fwd.AddRoute(cfg.Endpoint.(datamesh.ProxyFactory).Circuit(), l.Address(), nic.Address())
+
+		logrus.Info("finish")
 	})
 	d.Start()
 

@@ -3,6 +3,7 @@ package datamesh
 import (
 	"encoding/binary"
 	"github.com/openziti-incubator/datamesh/channel"
+	"github.com/openziti/dilithium"
 	"github.com/pkg/errors"
 )
 
@@ -46,9 +47,9 @@ type Control struct {
 	Headers map[int32][]byte
 }
 
-type Data struct {
+type Payload struct {
 	CircuitId Circuit
-	Payload   []byte
+	Buf       *dilithium.Buffer
 }
 
 /*
@@ -86,25 +87,26 @@ func UnmarshalControl(msg *channel.Message) (*Control, error) {
 	return control, nil
 }
 
-func NewData(circuitId Circuit) *Data {
-	return &Data{CircuitId: circuitId}
+func NewPayload(circuitId Circuit) *Payload {
+	return &Payload{CircuitId: circuitId}
 }
 
-func (self *Data) Marshal() *channel.Message {
-	msg := channel.NewMessage(int32(DataContentType), self.Payload)
+func (self *Payload) Marshal() *channel.Message {
+	msg := channel.NewMessage(int32(DataContentType), self.Buf.Data[:self.Buf.Used])
 	msg.Headers[CircuitIdHeaderKey] = []byte(self.CircuitId)
 	return msg
 }
 
-func UnmarshalData(msg *channel.Message) (*Data, error) {
-	data := &Data{Payload: make([]byte, len(msg.Body))}
-	copy(data.Payload, msg.Body)
+func UnmarshalPayload(msg *channel.Message, pool *dilithium.Pool) (*Payload, error) {
+	payload := &Payload{Buf: pool.Get()}
+	n := copy(payload.Buf.Data, msg.Body)
+	payload.Buf.Used = uint32(n)
 	if circuitId, found := msg.Headers[CircuitIdHeaderKey]; found {
-		data.CircuitId = Circuit(circuitId)
+		payload.CircuitId = Circuit(circuitId)
 	} else {
 		return nil, errors.New("missing circuitId from payload")
 	}
-	return data, nil
+	return payload, nil
 }
 
 /*

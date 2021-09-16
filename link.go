@@ -46,6 +46,7 @@ func newLink(cfg *LinkConfig, direction LinkDirection, dm *Datamesh) *link {
 
 func (self *link) setChannel(ch channel.Channel) {
 	self.ch = ch
+	self.addr = Address(ch.Id().Token)
 	self.id = &identity.TokenId{Token: ch.ConnectionId()}
 }
 
@@ -53,7 +54,7 @@ func (self *link) Address() Address {
 	return Address(self.id.Token)
 }
 
-func (self *link) FromNetwork(data *Data) error {
+func (self *link) FromNetwork(data *Payload) error {
 	return self.dm.Fwd.Forward(self.addr, data)
 }
 
@@ -149,7 +150,7 @@ func (_ *linkDataReceiveHandler) ContentType() int32 {
 
 func (self *linkDataReceiveHandler) HandleReceive(msg *channel.Message, ch channel.Channel) {
 	log := pfxlog.ContextLogger(ch.ConnectionId())
-	if data, err := UnmarshalData(msg); err == nil {
+	if data, err := UnmarshalPayload(msg, self.datamesh.pool); err == nil {
 		if err := self.datamesh.Fwd.Forward(self.l.Address(), data); err != nil {
 			log.Errorf("error forwarding (%v)", err)
 		}

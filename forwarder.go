@@ -56,18 +56,18 @@ func (fw *Forwarder) RemoveRoute(circuitId Circuit, srcAddr Address) {
 	fw.lock.Unlock()
 }
 
-func (fw *Forwarder) Forward(srcAddr Address, data *Data) error {
+func (fw *Forwarder) Forward(srcAddr Address, payload *Payload) error {
 	fw.lock.RLock()
 	defer fw.lock.RUnlock()
 
-	if destination := fw.destination(data.CircuitId, srcAddr); destination != nil {
-		if err := destination.FromNetwork(data); err != nil {
-			return errors.Wrapf(err, "unable to forward [circuit/%s][src/%s]", data.CircuitId, srcAddr)
+	if destination := fw.destination(payload.CircuitId, srcAddr); destination != nil {
+		if err := destination.FromNetwork(payload); err != nil {
+			return errors.Wrapf(err, "unable to forward [circuit/%s][src/%s]", payload.CircuitId, srcAddr)
 		}
-		logrus.Infof("forwarded (%v bytes) from (%v) -> (%v)", len(data.Payload), srcAddr, destination.Address())
+		logrus.Infof("forwarded (%v bytes) from (%v) -> (%v)", payload.Buf.Used, srcAddr, destination.Address())
 		return nil
 	} else {
-		return errors.Errorf("no destination for [circuit/%s][src/%s]", data.CircuitId, srcAddr)
+		return errors.Errorf("no destination for [circuit/%s][src/%s]", payload.CircuitId, srcAddr)
 	}
 }
 

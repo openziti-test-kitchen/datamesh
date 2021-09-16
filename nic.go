@@ -41,6 +41,7 @@ type nicImpl struct {
 }
 
 func newNIC(dm *Datamesh, circuit Circuit, address Address, endpoint Endpoint) NIC {
+	logrus.Info("started")
 	nic := &nicImpl{
 		circuit:  circuit,
 		address:  address,
@@ -85,9 +86,9 @@ func (nic *nicImpl) Address() Address {
 	return nic.address
 }
 
-func (nic *nicImpl) FromNetwork(data *Data) error {
+func (nic *nicImpl) FromNetwork(payload *Payload) error {
 	buf := nic.pool.Get()
-	n := copy(buf.Data, data.Payload)
+	n := copy(buf.Data, payload.Buf.Data)
 	buf.Used = uint32(n)
 	select {
 	case nic.netq <- buf:
@@ -101,7 +102,6 @@ func (nic *nicImpl) Close() error {
 }
 
 func (nic *nicImpl) Tx(data []byte) error {
-	logrus.Infof("tx (%v)", len(data))
 	n, err := nic.txp.Tx(data, nic.seq)
 	if err != nil {
 		return errors.Wrap(err, "to network")
