@@ -21,6 +21,8 @@ func (na *NICAdapter) Read(p []byte) (n int, err error) {
 			n := copy(p, buf.Data[:buf.Used])
 			logrus.Infof("read (%v)", n)
 			return n, nil
+		} else {
+			logrus.Warn("no read, not ok")
 		}
 	}
 	return 0, io.EOF

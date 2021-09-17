@@ -46,7 +46,7 @@ func newLink(cfg *LinkConfig, direction LinkDirection, dm *Datamesh) *link {
 
 func (self *link) setChannel(ch channel.Channel) {
 	self.ch = ch
-	self.addr = Address(ch.Id().Token)
+	self.addr = Address(ch.ConnectionId())
 	self.id = &identity.TokenId{Token: ch.ConnectionId()}
 }
 
@@ -55,7 +55,7 @@ func (self *link) Address() Address {
 }
 
 func (self *link) FromNetwork(data *Payload) error {
-	return self.dm.Fwd.Forward(self.addr, data)
+	return self.ch.Send(data.Marshal())
 }
 
 func (self *link) Close() error {

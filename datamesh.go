@@ -66,9 +66,6 @@ func (self *Datamesh) DialLink(id string, endpoint transport.Address) (Link, err
 			return nil, errors.Wrapf(err, "error dialing link at [%s]", endpoint)
 		}
 		self.overlay.addLink(l)
-		for _, handler := range self.Handlers.linkUpHandlers {
-			handler(l)
-		}
 		return l, nil
 	} else {
 		return nil, errors.Errorf("no dialer [%s]", id)
@@ -103,4 +100,7 @@ func (self *Datamesh) InsertNIC(circuitId Circuit, endpoint Endpoint) (NIC, erro
 
 func (self *Datamesh) addLinkCb(l *link) {
 	self.Fwd.AddDestination(l)
+	for _, handler := range self.Handlers.linkUpHandlers {
+		handler(l)
+	}
 }
