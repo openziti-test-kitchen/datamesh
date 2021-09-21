@@ -56,7 +56,6 @@ func (pxl *ProxyListener) rxer() {
 			} else {
 				logrus.Errorf("write error (%v)", err)
 			}
-			buf.Unref()
 		}
 	}
 }
@@ -135,7 +134,6 @@ func (pxt *ProxyTerminator) rxer() {
 			} else {
 				logrus.Errorf("write error (%v)", err)
 			}
-			buf.Unref()
 		}
 	}
 }
@@ -150,7 +148,6 @@ func (pxt *ProxyTerminator) txer() {
 				logrus.Errorf("forward error (%v)", err)
 				return
 			}
-			logrus.Infof("tx (%v bytes)", n)
 		} else if err == io.EOF {
 			// close handling
 			logrus.Warn("EOF")

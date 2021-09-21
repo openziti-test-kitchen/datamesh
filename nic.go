@@ -93,7 +93,6 @@ func (nic *nicImpl) FromNetwork(payload *Payload) error {
 	select {
 	case nic.netq <- buf:
 	default:
-		payload.Buf.Unref()
 	}
 	return nil
 }

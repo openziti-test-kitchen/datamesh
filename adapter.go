@@ -19,7 +19,6 @@ func (na *NICAdapter) Read(p []byte) (n int, err error) {
 	case buf, ok := <-na.nic.(*nicImpl).netq:
 		if ok {
 			n := copy(p, buf.Data[:buf.Used])
-			logrus.Infof("read (%v)", n)
 			return n, nil
 		} else {
 			logrus.Warn("no read, not ok")
@@ -30,8 +29,6 @@ func (na *NICAdapter) Read(p []byte) (n int, err error) {
 
 func (na *NICAdapter) Write(p []byte) (n int, err error) {
 	nic := na.nic.(*nicImpl)
-
-	logrus.Infof("tx (%v, %v)", len(p), nic.address)
 
 	payload := NewPayload(nic.circuit)
 	payload.Buf = nic.pool.Get()

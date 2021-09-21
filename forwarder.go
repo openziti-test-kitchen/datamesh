@@ -2,7 +2,6 @@ package datamesh
 
 import (
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -64,7 +63,6 @@ func (fw *Forwarder) Forward(srcAddr Address, payload *Payload) error {
 		if err := destination.FromNetwork(payload); err != nil {
 			return errors.Wrapf(err, "unable to forward [circuit/%s][src/%s]", payload.CircuitId, srcAddr)
 		}
-		logrus.Infof("forwarded (%v bytes) from (%v) -> (%v)", payload.Buf.Used, srcAddr, destination.Address())
 		return nil
 	} else {
 		return errors.Errorf("no destination for [circuit/%s][src/%s]", payload.CircuitId, srcAddr)
