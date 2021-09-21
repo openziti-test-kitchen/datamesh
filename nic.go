@@ -88,11 +88,12 @@ func (nic *nicImpl) Address() Address {
 
 func (nic *nicImpl) FromNetwork(payload *Payload) error {
 	buf := nic.pool.Get()
-	n := copy(buf.Data, payload.Buf.Data)
+	n := copy(buf.Data, payload.Buf.Data[:payload.Buf.Used])
 	buf.Used = uint32(n)
 	select {
 	case nic.netq <- buf:
 	default:
+		payload.Buf.Unref()
 	}
 	return nil
 }
