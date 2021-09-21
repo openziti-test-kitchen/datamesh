@@ -11,6 +11,7 @@ import (
 
 type ProxyListener struct {
 	bindAddress transport.Address
+	in          chan transport.Connection
 	conn        transport.Connection
 	txq         EndpointTxer
 	rxq         chan *dilithium.Buffer
@@ -18,28 +19,31 @@ type ProxyListener struct {
 }
 
 func NewProxyListener(bindAddress transport.Address) *ProxyListener {
-	return &ProxyListener{bindAddress: bindAddress, readBuf: make([]byte, 128 * 1024)}
+	return &ProxyListener{bindAddress: bindAddress, in: make(chan transport.Connection, 1), readBuf: make([]byte, 128*1024)}
 }
 
 func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
-	in := make(chan transport.Connection)
-	_, err := pxl.bindAddress.Listen("ProxyListener", nil, in, nil)
+	_, err := pxl.bindAddress.Listen("ProxyListener", nil, pxl.in, nil)
 	if err != nil {
 		return errors.Wrap(err, "error listening")
 	}
-	logrus.Infof("listening [%v]", pxl.bindAddress)
-	select {
-	case conn := <-in:
-		pxl.conn = conn
-	}
-	logrus.Infof("accepted connection [%v]", pxl.conn.Detail())
+	go pxl.accept()
 
 	pxl.txq = txq
 	pxl.rxq = rxq
-	go pxl.rxer()
-	go pxl.txer()
 
 	return nil
+}
+
+func (pxl *ProxyListener) accept() {
+	logrus.Infof("listening [%v]", pxl.bindAddress)
+	select {
+	case conn := <-pxl.in:
+		pxl.conn = conn
+	}
+	logrus.Infof("accepted connection [%v]", pxl.conn.Detail())
+	go pxl.rxer()
+	go pxl.txer()
 }
 
 func (pxl *ProxyListener) rxer() {
@@ -101,7 +105,7 @@ type ProxyTerminator struct {
 }
 
 func NewProxyTerminator(dialAddress transport.Address) *ProxyTerminator {
-	return &ProxyTerminator{dialAddress: dialAddress, readBuf: make([]byte, 128 * 1024)}
+	return &ProxyTerminator{dialAddress: dialAddress, readBuf: make([]byte, 128*1024)}
 }
 
 func (pxt *ProxyTerminator) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
