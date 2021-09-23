@@ -123,10 +123,6 @@ func (nic *nicImpl) rxer() {
 			logrus.Errorf("read error (%v)", err)
 		}
 		buf.Used = uint32(n)
-		select {
-		case nic.rxq <- buf:
-		default:
-			logrus.Info("dropped")
-		}
+		nic.rxq <- buf
 	}
 }
