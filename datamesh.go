@@ -1,6 +1,7 @@
 package datamesh
 
 import (
+	"fmt"
 	"github.com/openziti-incubator/datamesh/channel"
 	"github.com/openziti/dilithium"
 	"github.com/openziti/foundation/identity/identity"
@@ -8,23 +9,25 @@ import (
 	"github.com/openziti/foundation/util/sequence"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"os"
 	"sync"
 )
 
 type Circuit string
 
 type Datamesh struct {
-	cf        *Config
-	self      *identity.TokenId
-	listeners map[string]*Listener
-	dialers   map[string]*Dialer
-	nics      map[string]NIC
-	overlay   *Overlay
-	Fwd       *Forwarder
-	Handlers  *Handlers
-	sequence  *sequence.Sequence
-	pool      *dilithium.Pool
-	lock      sync.Mutex
+	cf         *Config
+	self       *identity.TokenId
+	listeners  map[string]*Listener
+	dialers    map[string]*Dialer
+	nics       map[string]NIC
+	overlay    *Overlay
+	Fwd        *Forwarder
+	Handlers   *Handlers
+	sequence   *sequence.Sequence
+	pool       *dilithium.Pool
+	lock       sync.Mutex
+	instrument dilithium.Instrument
 }
 
 func NewDatamesh(cf *Config) *Datamesh {
@@ -37,7 +40,7 @@ func NewDatamesh(cf *Config) *Datamesh {
 		Fwd:       newForwarder(),
 		Handlers:  &Handlers{},
 		sequence:  sequence.NewSequence(),
-		pool:      dilithium.NewPool("link", 128*1024),
+		pool:      dilithium.NewPool("link", 128*1024, dilithium.NilInstrumentInstance{}),
 	}
 	channel.SetUnderlayRegistrySequence(d.sequence)
 	d.overlay.addLinkCb = d.addLinkCb
@@ -80,8 +83,17 @@ func (self *Datamesh) InsertNIC(circuitId Circuit, endpoint Endpoint) (NIC, erro
 	if err != nil {
 		return nil, err
 	}
-	nic := newNIC(self, circuitId, Address(addr), endpoint)
-	txAlg, err := self.cf.Profile.(dilithium.TxAlgorithmProfile).Create()
+	path := fmt.Sprintf("/home/plorenz/tmp/dilithium/%v", os.Getpid())
+	if err := os.MkdirAll(path, 0700); err != nil {
+		return nil, err
+	}
+	instrument, err := dilithium.NewMetricsInstrumentNoCf(path, 250, true)
+	if err != nil {
+		return nil, err
+	}
+	ii := instrument.NewInstance("test")
+	nic := newNIC(self, circuitId, Address(addr), endpoint, ii)
+	txAlg, err := self.cf.Profile.(dilithium.TxAlgorithmProfile).Create(ii)
 	if err != nil {
 		return nil, err
 	}
