@@ -18,22 +18,11 @@ type ProxyListener struct {
 	readBuf     []byte
 }
 
-func (pxl *ProxyListener) Accept(data []byte) error {
-	_, err := pxl.conn.Writer().Write(data)
-	return err
-}
-
-func (pxl *ProxyListener) Close() {
-	if err := pxl.conn.Close(); err != nil {
-		logrus.WithError(err).Errorf("failure closing proxy listener conn")
-	}
-}
-
 func NewProxyListener(bindAddress transport.Address) *ProxyListener {
 	return &ProxyListener{bindAddress: bindAddress, in: make(chan transport.Connection, 1), readBuf: make([]byte, 128*1024)}
 }
 
-func (pxl *ProxyListener) Connect(txq EndpointTxer) error {
+func (pxl *ProxyListener) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
 	_, err := pxl.bindAddress.Listen("ProxyListener", nil, pxl.in, nil)
 	if err != nil {
 		return errors.Wrap(err, "error listening")
@@ -41,6 +30,7 @@ func (pxl *ProxyListener) Connect(txq EndpointTxer) error {
 	go pxl.accept()
 
 	pxl.txq = txq
+	pxl.rxq = rxq
 
 	return nil
 }
@@ -52,7 +42,26 @@ func (pxl *ProxyListener) accept() {
 		pxl.conn = conn
 	}
 	logrus.Infof("accepted connection [%v]", pxl.conn.Detail())
+	go pxl.rxer()
 	go pxl.txer()
+}
+
+func (pxl *ProxyListener) rxer() {
+	logrus.Info("started")
+	defer logrus.Info("exited")
+
+	for {
+		select {
+		case buf := <-pxl.rxq:
+			if n, err := pxl.conn.Writer().Write(buf.Data[:buf.Used]); err == nil {
+				if uint32(n) != buf.Used {
+					logrus.Warn("short write")
+				}
+			} else {
+				logrus.Errorf("write error (%v)", err)
+			}
+		}
+	}
 }
 
 func (pxl *ProxyListener) txer() {
@@ -99,17 +108,7 @@ func NewProxyTerminator(dialAddress transport.Address) *ProxyTerminator {
 	return &ProxyTerminator{dialAddress: dialAddress, readBuf: make([]byte, 128*1024)}
 }
 
-func (pxt *ProxyTerminator) Accept(data []byte) error {
-	_, err := pxt.conn.Writer().Write(data)
-	return err
-}
-
-func (pxt *ProxyTerminator) Close() {
-	if err := pxt.conn.Close(); err != nil {
-		logrus.WithError(err).Errorf("failure closing proxy terminator conn")
-	}
-}
-func (pxt *ProxyTerminator) Connect(txq EndpointTxer) error {
+func (pxt *ProxyTerminator) Connect(txq EndpointTxer, rxq chan *dilithium.Buffer) error {
 	conn, err := pxt.dialAddress.Dial("ProxyTerminator", nil, 5*time.Second, nil)
 	if err != nil {
 		return errors.Wrap(err, "error dialing")
@@ -118,9 +117,29 @@ func (pxt *ProxyTerminator) Connect(txq EndpointTxer) error {
 	pxt.conn = conn
 
 	pxt.txq = txq
+	pxt.rxq = rxq
+	go pxt.rxer()
 	go pxt.txer()
 
 	return nil
+}
+
+func (pxt *ProxyTerminator) rxer() {
+	logrus.Info("started")
+	defer logrus.Info("exited")
+
+	for {
+		select {
+		case buf := <-pxt.rxq:
+			if n, err := pxt.conn.Writer().Write(buf.Data[:buf.Used]); err == nil {
+				if uint32(n) != buf.Used {
+					logrus.Warn("short write")
+				}
+			} else {
+				logrus.Errorf("write error (%v)", err)
+			}
+		}
+	}
 }
 
 func (pxt *ProxyTerminator) txer() {
